@@ -29,6 +29,7 @@ type ISP =
                         nat;
                         text;
                       }) query;
+   getSubAccount: () -> (AccountIdentifier) query;
    getUserICSPs: () -> (vec record {
                               text;
                               principal;
@@ -45,4 +46,5 @@ type Error =
    Ledger_Transfer_Failed: nat;
    Unauthorized;
  };
+type AccountIdentifier = blob;
 service : () -> ISP

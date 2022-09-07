@@ -8,6 +8,7 @@ version = "0.1.0"
 dependencies = [
  "candid",
  "garcon",
+ "hex",
  "ic-agent",
  "ic-cdk",
  "rayon",

@@ -17,3 +17,4 @@ garcon = "0.2.3"
 tokio = { version = "1", features = ["full"] }
 sha256 = "1.0.3"
 rayon = "1.5.3"
+hex = "0.4.3"

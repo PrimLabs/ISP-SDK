@@ -34,20 +34,13 @@ pub struct TransformArgs {
 }
 
 pub type ISP = candid::Service;
+pub type AccountIdentifier = Vec<u8>;
 
 pub struct SERVICE(pub candid::Principal);
 impl SERVICE{
 
-    pub async fn add_admin(&self, new_admin: Principal) -> CallResult<(bool,)> {
-        ic_cdk::call(self.0, "addAdmin", (new_admin,)).await
-    }
-
-    pub async fn change_admins(&self, new_admins: Vec<Principal>) -> CallResult<
-        (bool,)
-    > { ic_cdk::call(self.0, "changeAdmins", (new_admins,)).await }
-
-    pub async fn clear_log(&self) -> CallResult<()> {
-        ic_cdk::call(self.0, "clearLog", ()).await
+    pub async fn get_sub_account(&self) -> CallResult<(AccountIdentifier,)> {
+        ic_cdk::call(self.0, "getSubAccount", ()).await
     }
 
     pub async fn create_icsp(&self, name: String, amount: u64) -> CallResult<
@@ -58,10 +51,6 @@ impl SERVICE{
         ic_cdk::call(self.0, "getAdmins", ()).await
     }
 
-    pub async fn get_log(&self) -> CallResult<(Vec<(Nat,String,)>,)> {
-        ic_cdk::call(self.0, "getLog", ()).await
-    }
-
     pub async fn get_user_icsps(&self) -> CallResult<
         (Vec<(String,Principal,)>,)
     > { ic_cdk::call(self.0, "getUserICSPs", ()).await }
@@ -70,20 +59,8 @@ impl SERVICE{
         ic_cdk::call(self.0, "topUpICSP", (args,)).await
     }
 
-    pub async fn top_up_self(&self, _caller: Principal) -> CallResult<()> {
-        ic_cdk::call(self.0, "topUpSelf", (_caller,)).await
-    }
-
     pub async fn transform_icp(&self, args: TransformArgs) -> CallResult<
         (TopUpResult,)
     > { ic_cdk::call(self.0, "transformIcp", (args,)).await }
-
-    pub async fn update_icsp_wasm(&self, _wasm: Vec<u8>) -> CallResult<(String,)> {
-        ic_cdk::call(self.0, "updateICSPWasm", (_wasm,)).await
-    }
-
-    pub async fn wallet_receive(&self) -> CallResult<()> {
-        ic_cdk::call(self.0, "wallet_receive", ()).await
-    }
 
 }

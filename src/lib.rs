@@ -1,12 +1,13 @@
 pub mod isp_sdk {
-    use std::cell::{RefCell};
-    use ic_agent::{Agent, ic_types::Principal, identity::Secp256k1Identity};
+    use candid::{CandidType, Decode, Encode, Nat};
+    use hex::{self};
     use ic_agent::agent::http_transport::ReqwestHttpReplicaV2Transport;
-    use candid::{Encode, Decode, CandidType, Nat};
-    use serde::Deserialize;
-    use std::fs::{self};
+    use ic_agent::{ic_types::Principal, identity::Secp256k1Identity, Agent};
     use rayon::prelude::*;
+    use serde::Deserialize;
     use sha256::{digest, digest_bytes};
+    use std::cell::RefCell;
+    use std::fs::{self};
 
     const UPDATE_SIZE: usize = 1992288;
     static isp_canister_id_text: &'static str = "4radi-oqaaa-aaaan-qapwa-cai";
@@ -21,7 +22,7 @@ pub mod isp_sdk {
     #[derive(CandidType, Deserialize)]
     pub enum CreateICSPResult {
         Ok(Principal),
-        Err(Error)
+        Err(Error),
     }
 
     #[derive(CandidType, Deserialize)]
@@ -35,15 +36,32 @@ pub mod isp_sdk {
         index: Nat,
     }
 
-    pub async fn create_a_icsp(pem_identity_path: &str, icsp_name: &str, icp_amount: u64) -> Principal {
+    #[derive(CandidType, Deserialize)]
+    pub enum TopUpResult {
+        Ok,
+        Err(Error),
+    }
+
+    #[derive(CandidType, Deserialize)]
+    pub struct TopUpArgs {
+        icsp_canister_id: Principal,
+        icp_amount: u64,
+    }
+
+    pub async fn create_a_icsp(
+        pem_identity_path: &str,
+        icsp_name: &str,
+        icp_amount: u64,
+    ) -> Principal {
         let url = "https://ic0.app".to_string();
-        let identity= Secp256k1Identity::from_pem_file(String::from(pem_identity_path)).unwrap();
+        let identity = Secp256k1Identity::from_pem_file(String::from(pem_identity_path)).unwrap();
         let isp_canister_id = Principal::from_text(isp_canister_id_text).unwrap();
         let transport = ReqwestHttpReplicaV2Transport::create(url).expect("transport error");
         let agent = Agent::builder()
             .with_transport(transport)
             .with_identity(identity)
-            .build().expect("build agent error");
+            .build()
+            .expect("build agent error");
         let waiter = garcon::Delay::builder()
             .throttle(std::time::Duration::from_millis(500))
             .timeout(std::time::Duration::from_secs(60 * 5))
@@ -52,7 +70,8 @@ pub mod isp_sdk {
             .update(&isp_canister_id, "createICSP")
             .with_arg(Encode!(&icsp_name, &icp_amount).expect("encode error"))
             .call_and_wait(waiter)
-            .await.expect("response error");
+            .await
+            .expect("response error");
         let response = Decode!(&response_blob, CreateICSPResult).unwrap();
         match response {
             CreateICSPResult::Ok(icsp_canister_id) => return icsp_canister_id,
@@ -61,43 +80,223 @@ pub mod isp_sdk {
         Principal::from_text("aaaaa-aa").unwrap()
     }
 
-    pub async fn get_user_icsps(pem_identity_path: &str) -> Vec<(String, Principal)> {
+    pub async fn top_up_icsp(pem_identity_path: &str, args: TopUpArgs) -> TopUpResult {
         let url = "https://ic0.app".to_string();
-        let identity= Secp256k1Identity::from_pem_file(String::from(pem_identity_path)).unwrap();
+        let identity = Secp256k1Identity::from_pem_file(String::from(pem_identity_path)).unwrap();
         let isp_canister_id = Principal::from_text(isp_canister_id_text).unwrap();
         let transport = ReqwestHttpReplicaV2Transport::create(url).expect("transport error");
         let agent = Agent::builder()
             .with_transport(transport)
             .with_identity(identity)
-            .build().expect("build agent error");
+            .build()
+            .expect("build agent error");
+        let waiter = garcon::Delay::builder()
+            .throttle(std::time::Duration::from_millis(500))
+            .timeout(std::time::Duration::from_secs(60 * 5))
+            .build();
         let response_blob = agent
-            .query(&isp_canister_id, "getUserICSPs")
-            .with_arg(Encode!().expect("encode error"))
-            .call()
-            .await.expect("response error");
-        let response = Decode!(&response_blob, Vec<(String, Principal)>).unwrap();
+            .update(&isp_canister_id, "topUpICSP")
+            .with_arg(Encode!(&args).expect("encode error"))
+            .call_and_wait(waiter)
+            .await
+            .expect("response error");
+        let response = Decode!(&response_blob, TopUpResult).unwrap();
         response
     }
 
-    pub async fn store_file(pem_identity_path: &str, folder_path: &str,icsp_canister_id_text: &str) -> Vec<(String, String)> {
+    pub async fn add_icsp_admin(
+        pem_identity_path: &str,
+        icsp_canister_id_text: &str,
+        new_admin_text: &str,
+    ) -> bool {
         let url = "https://ic0.app".to_string();
-        let identity= Secp256k1Identity::from_pem_file(String::from(pem_identity_path)).unwrap();
+        let identity = Secp256k1Identity::from_pem_file(String::from(pem_identity_path)).unwrap();
         let icsp_canister_id = Principal::from_text(icsp_canister_id_text).unwrap();
         let transport = ReqwestHttpReplicaV2Transport::create(url).expect("transport error");
         let agent = Agent::builder()
             .with_transport(transport)
             .with_identity(identity)
-            .build().expect("build agent error");
+            .build()
+            .expect("build agent error");
+        let waiter = garcon::Delay::builder()
+            .throttle(std::time::Duration::from_millis(500))
+            .timeout(std::time::Duration::from_secs(60 * 5))
+            .build();
+        let new_admin = Principal::from_text(new_admin_text).unwrap();
+        let response_blob = agent
+            .update(&icsp_canister_id, "addAdmin")
+            .with_arg(Encode!(&new_admin).expect("encode error"))
+            .call_and_wait(waiter)
+            .await
+            .expect("response error");
+        let response = Decode!(&response_blob, bool).unwrap();
+        response
+    }
+
+    pub async fn change_icsp_admin(
+        pem_identity_path: &str,
+        icsp_canister_id_text: &str,
+        new_admins_text: Vec<&str>,
+    ) -> bool {
+        let url = "https://ic0.app".to_string();
+        let identity = Secp256k1Identity::from_pem_file(String::from(pem_identity_path)).unwrap();
+        let icsp_canister_id = Principal::from_text(icsp_canister_id_text).unwrap();
+        let transport = ReqwestHttpReplicaV2Transport::create(url).expect("transport error");
+        let agent = Agent::builder()
+            .with_transport(transport)
+            .with_identity(identity)
+            .build()
+            .expect("build agent error");
+        let waiter = garcon::Delay::builder()
+            .throttle(std::time::Duration::from_millis(500))
+            .timeout(std::time::Duration::from_secs(60 * 5))
+            .build();
+        let mut new_admins: Vec<Principal> = Vec::new();
+        for i in new_admins_text {
+            new_admins.push(Principal::from_text(i).unwrap());
+        }
+        let response_blob = agent
+            .update(&icsp_canister_id, "changeAdmin")
+            .with_arg(Encode!(&new_admins).expect("encode error"))
+            .call_and_wait(waiter)
+            .await
+            .expect("response error");
+        let response = Decode!(&response_blob, bool).unwrap();
+        response
+    }
+
+    pub async fn change_bucket_admin(pem_identity_path: &str, icsp_canister_id_text: &str) -> bool {
+        let url = "https://ic0.app".to_string();
+        let identity = Secp256k1Identity::from_pem_file(String::from(pem_identity_path)).unwrap();
+        let icsp_canister_id = Principal::from_text(icsp_canister_id_text).unwrap();
+        let transport = ReqwestHttpReplicaV2Transport::create(url).expect("transport error");
+        let agent = Agent::builder()
+            .with_transport(transport)
+            .with_identity(identity)
+            .build()
+            .expect("build agent error");
+        let waiter = garcon::Delay::builder()
+            .throttle(std::time::Duration::from_millis(500))
+            .timeout(std::time::Duration::from_secs(60 * 5))
+            .build();
+        let response_blob = agent
+            .update(&icsp_canister_id, "change_bucket_admin")
+            .with_arg(Encode!().expect("encode error"))
+            .call_and_wait(waiter)
+            .await
+            .expect("response error");
+        let response = Decode!(&response_blob, bool).unwrap();
+        response
+    }
+
+    pub async fn get_sub_account(pem_identity_path: &str) -> String {
+        let url = "https://ic0.app".to_string();
+        let identity = Secp256k1Identity::from_pem_file(String::from(pem_identity_path)).unwrap();
+        let isp_canister_id = Principal::from_text(isp_canister_id_text).unwrap();
+        let transport = ReqwestHttpReplicaV2Transport::create(url).expect("transport error");
+        let agent = Agent::builder()
+            .with_transport(transport)
+            .with_identity(identity)
+            .build()
+            .expect("build agent error");
+        let response_blob = agent
+            .query(&isp_canister_id, "getSubAccount")
+            .with_arg(Encode!().expect("encode error"))
+            .call()
+            .await
+            .expect("response error");
+        let response = Decode!(&response_blob, Vec<u8>).unwrap();
+        hex::encode(response)
+    }
+
+    pub async fn get_user_icsps(pem_identity_path: &str) -> Vec<(String, Principal)> {
+        let url = "https://ic0.app".to_string();
+        let identity = Secp256k1Identity::from_pem_file(String::from(pem_identity_path)).unwrap();
+        let isp_canister_id = Principal::from_text(isp_canister_id_text).unwrap();
+        let transport = ReqwestHttpReplicaV2Transport::create(url).expect("transport error");
+        let agent = Agent::builder()
+            .with_transport(transport)
+            .with_identity(identity)
+            .build()
+            .expect("build agent error");
+        let response_blob = agent
+            .query(&isp_canister_id, "getUserICSPs")
+            .with_arg(Encode!().expect("encode error"))
+            .call()
+            .await
+            .expect("response error");
+        let response = Decode!(&response_blob, Vec<(String, Principal)>).unwrap();
+        response
+    }
+
+    pub async fn get_isp_admins(pem_identity_path: &str) -> Vec<Principal> {
+        let url = "https://ic0.app".to_string();
+        let identity = Secp256k1Identity::from_pem_file(String::from(pem_identity_path)).unwrap();
+        let isp_canister_id = Principal::from_text(isp_canister_id_text).unwrap();
+        let transport = ReqwestHttpReplicaV2Transport::create(url).expect("transport error");
+        let agent = Agent::builder()
+            .with_transport(transport)
+            .with_identity(identity)
+            .build()
+            .expect("build agent error");
+        let response_blob = agent
+            .query(&isp_canister_id, "getAdmins")
+            .with_arg(Encode!().expect("encode error"))
+            .call()
+            .await
+            .expect("response error");
+        let response = Decode!(&response_blob, Vec<Principal>).unwrap();
+        response
+    }
+
+    pub async fn get_icsp_admins(
+        pem_identity_path: &str,
+        icsp_canister_id_text: &str,
+    ) -> Vec<Principal> {
+        let url = "https://ic0.app".to_string();
+        let identity = Secp256k1Identity::from_pem_file(String::from(pem_identity_path)).unwrap();
+        let icsp_canister_id = Principal::from_text(icsp_canister_id_text).unwrap();
+        let transport = ReqwestHttpReplicaV2Transport::create(url).expect("transport error");
+        let agent = Agent::builder()
+            .with_transport(transport)
+            .with_identity(identity)
+            .build()
+            .expect("build agent error");
+        let response_blob = agent
+            .query(&icsp_canister_id, "getAdmins")
+            .with_arg(Encode!().expect("encode error"))
+            .call()
+            .await
+            .expect("response error");
+        let response = Decode!(&response_blob, Vec<Principal>).unwrap();
+        response
+    }
+
+    pub async fn store_file(
+        pem_identity_path: &str,
+        folder_path: &str,
+        icsp_canister_id_text: &str,
+        is_http_open: bool,
+    ) -> Vec<(String, String)> {
+        let url = "https://ic0.app".to_string();
+        let identity = Secp256k1Identity::from_pem_file(String::from(pem_identity_path)).unwrap();
+        let icsp_canister_id = Principal::from_text(icsp_canister_id_text).unwrap();
+        let transport = ReqwestHttpReplicaV2Transport::create(url).expect("transport error");
+        let agent = Agent::builder()
+            .with_transport(transport)
+            .with_identity(identity)
+            .build()
+            .expect("build agent error");
         let waiter = garcon::Delay::builder()
             .throttle(std::time::Duration::from_millis(500))
             .timeout(std::time::Duration::from_secs(60 * 5))
             .build();
 
-        let mut ans: Vec<(String,String)> = Vec::new();
+        let mut ans: Vec<(String, String)> = Vec::new();
         let paths = fs::read_dir(&folder_path).unwrap();
         for path in paths {
             let file_path = path.unwrap().file_name().into_string().unwrap();
-            let pos :Vec<&str> = file_path.split(".").collect();
+            let pos: Vec<&str> = file_path.split(".").collect();
             let file_name = String::from(pos[0]);
             let file_type = String::from(pos[1]);
             let file_extension = String::from(getFileType(&file_type));
@@ -105,34 +304,82 @@ pub mod isp_sdk {
 
             let (file_size, data_slice) = get_file_from_source(&s);
 
-            let puts = build_storeArgs(file_name.clone(), file_extension, file_size.try_into().unwrap(), &data_slice);
+            let puts = build_storeArgs(
+                file_name.clone(),
+                file_extension,
+                file_size.try_into().unwrap(),
+                &data_slice,
+                is_http_open,
+            );
             for put in &puts {
                 let response = agent
                     .update(&icsp_canister_id, "store")
                     .with_arg(Encode!(put).expect("encode piece failed"))
                     .call_and_wait(waiter.clone())
-                    .await.expect("response error");
+                    .await
+                    .expect("response error");
             }
             ans.push((file_name.clone(), puts[0].key.clone()));
         }
         ans
     }
 
-    pub async fn get_isp_admins(pem_identity_path: &str) -> Vec<Principal> {
+    #[derive(CandidType, Deserialize)]
+    struct LiveBucketExt {
+        used_memory: Nat,
+        canister_id: Principal,
+    }
+
+    #[derive(CandidType, Deserialize)]
+    struct Buckets {
+        old_buckets: Vec<Principal>,
+        live_buckets: Vec<LiveBucketExt>,
+    }
+
+    pub async fn get_bucket_of_file(
+        pem_identity_path: &str,
+        icsp_canister_id_text: &str,
+        file_key: &str,
+    ) -> Option<Principal> {
         let url = "https://ic0.app".to_string();
-        let identity= Secp256k1Identity::from_pem_file(String::from(pem_identity_path)).unwrap();
-        let isp_canister_id = Principal::from_text(isp_canister_id_text).unwrap();
+        let identity = Secp256k1Identity::from_pem_file(String::from(pem_identity_path)).unwrap();
+        let icsp_canister_id = Principal::from_text(icsp_canister_id_text).unwrap();
         let transport = ReqwestHttpReplicaV2Transport::create(url).expect("transport error");
         let agent = Agent::builder()
             .with_transport(transport)
             .with_identity(identity)
-            .build().expect("build agent error");
+            .build()
+            .expect("build agent error");
         let response_blob = agent
-            .query(&isp_canister_id, "getAdmins")
-            .with_arg(Encode!().expect("encode error"))
+            .query(&icsp_canister_id, "getBuckets")
+            .with_arg(Encode!(&file_key).expect("encode piece failed"))
             .call()
-            .await.expect("response error");
-        let response = Decode!(&response_blob, Vec<Principal>).unwrap();
+            .await
+            .expect("response error");
+        let response = Decode!(&response_blob, Option<Principal>).unwrap();
+        response
+    }
+
+    pub async fn get_icsp_buckets(
+        pem_identity_path: &str,
+        icsp_canister_id_text: &str,
+    ) -> Option<Buckets> {
+        let url = "https://ic0.app".to_string();
+        let identity = Secp256k1Identity::from_pem_file(String::from(pem_identity_path)).unwrap();
+        let icsp_canister_id = Principal::from_text(icsp_canister_id_text).unwrap();
+        let transport = ReqwestHttpReplicaV2Transport::create(url).expect("transport error");
+        let agent = Agent::builder()
+            .with_transport(transport)
+            .with_identity(identity)
+            .build()
+            .expect("build agent error");
+        let response_blob = agent
+            .query(&icsp_canister_id, "getBuckets")
+            .with_arg(Encode!().expect("encode piece failed"))
+            .call()
+            .await
+            .expect("response error");
+        let response = Decode!(&response_blob, Option<Buckets>).unwrap();
         response
     }
 
@@ -184,6 +431,7 @@ pub mod isp_sdk {
         file_extension: String,
         total_size: u128,
         data_slice: &Vec<Vec<u8>>,
+        is_open: bool,
     ) -> Vec<StoreArgs> {
         let mut order = 0;
         let mut puts = vec![];
@@ -195,7 +443,7 @@ pub mod isp_sdk {
                 total_index: Nat::from(data_slice.len() as u128),
                 file_type: file_extension.clone(),
                 total_size: total_size.clone() as u64,
-                is_http_open: true,
+                is_http_open: is_open,
                 index: Nat::from(order.clone()),
             });
             order += 1;
@@ -224,5 +472,4 @@ pub mod isp_sdk {
             return "application/octet-stream";
         }
     }
-
 }
