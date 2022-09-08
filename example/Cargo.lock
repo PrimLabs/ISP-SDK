@@ -3,7 +3,7 @@
 version = 3
 
 [[package]]
-name = "ISP-SDK"
+name = "ISP-SDK-example"
 version = "0.1.0"
 dependencies = [
  "candid",
