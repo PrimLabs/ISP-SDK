@@ -2,6 +2,12 @@
 name = "ISP-SDK"
 version = "0.1.0"
 edition = "2021"
+authors = ["team@icantool.app"]
+license = "MIT OR Apache-2.0"
+readme = "README.md"
+description = "easy to use isp tool"
+homepage = "https://github.com/PrimLabs/ISP-SDK"
+repository = "https://github.com/PrimLabs/ISP-SDK"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
