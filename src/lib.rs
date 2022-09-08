@@ -8,7 +8,6 @@ pub mod isp_sdk {
     use rayon::prelude::*;
     use serde::Deserialize;
     use sha256::{digest, digest_bytes};
-    use std::cell::RefCell;
     use std::fs::{self};
 
     const UPDATE_SIZE: usize = 1992288;
@@ -226,6 +225,50 @@ pub mod isp_sdk {
             ans.push((file_name.clone(), puts[0].key.clone()));
         }
         ans
+    }
+
+    pub async fn get_file(
+        pem_identity_path: &str,
+        icsp_canister_id_text: &str,
+        file_key: &str,
+    ) -> (Vec<u8>, String) {
+        let bucket_canister_id =
+            get_bucket_of_file(pem_identity_path, icsp_canister_id_text, file_key)
+                .await
+                .expect("asset not have this file");
+        let agent = build_agent(pem_identity_path, bucket_canister_id);
+        let waiter = get_waiter();
+
+        let total_index_blob = agent
+            .update(&bucket_canister_id, "getFileTotalIndex")
+            .with_arg(Encode!(&file_key).expect("encode failed"))
+            .call_and_wait(waiter)
+            .await
+            .expect("response error");
+        let total_index = Decode!(&total_index_blob, Nat).unwrap();
+        if total_index < Nat::from(1) {
+            return (vec![], "".to_string());
+        }
+        let mut index = 0;
+        let mut payload: Vec<u8> = Vec::new();
+        let mut file_type = "".to_string();
+        while Nat::from(index) < total_index {
+            let response_blob = agent
+                .query(&bucket_canister_id, "get")
+                .with_arg(Encode!(&file_key, &Nat::from(index)).expect("encode failed"))
+                .call()
+                .await
+                .expect("response error");
+            let mut response = Decode!(&response_blob, Option<(Vec<u8>, String)>)
+                .unwrap()
+                .expect("assets not have this file");
+            payload.append(&mut response.0);
+            index += 1;
+            if Nat::from(index) == total_index {
+                file_type = response.1;
+            }
+        }
+        (payload, file_type)
     }
 
     pub async fn change_bucket_admin(pem_identity_path: &str, icsp_canister_id_text: &str) -> bool {
