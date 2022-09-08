@@ -1,6 +1,6 @@
 [package]
 name = "ISP-SDK"
-version = "0.1.0"
+version = "0.1.0-alpha.0"
 edition = "2021"
 authors = ["team@icantool.app"]
 license = "MIT OR Apache-2.0"
