@@ -7,11 +7,11 @@ pub mod isp_sdk {
     use ic_agent::{ic_types::Principal, identity::Secp256k1Identity, Agent};
     use rayon::prelude::*;
     use serde::Deserialize;
-    use sha256::{digest, digest_bytes};
+    use sha256::digest_bytes;
     use std::fs::{self};
 
     const UPDATE_SIZE: usize = 1992288;
-    static isp_canister_id_text: &'static str = "4radi-oqaaa-aaaan-qapwa-cai";
+    static ISP_CANISTER_ID_TEXT: &'static str = "p2pki-xyaaa-aaaan-qatua-cai";
 
     #[derive(CandidType, Deserialize)]
     pub enum Error {
@@ -50,13 +50,13 @@ pub mod isp_sdk {
     }
 
     #[derive(CandidType, Deserialize)]
-    struct LiveBucketExt {
+    pub struct LiveBucketExt {
         used_memory: Nat,
         canister_id: Principal,
     }
 
     #[derive(CandidType, Deserialize)]
-    struct Buckets {
+    pub struct Buckets {
         old_buckets: Vec<Principal>,
         live_buckets: Vec<LiveBucketExt>,
     }
@@ -64,8 +64,8 @@ pub mod isp_sdk {
     // isp ------------------------------------------------------------------------------
 
     pub async fn get_user_icsps(pem_identity_path: &str) -> Vec<(String, Principal)> {
-        let canister_id = Principal::from_text(isp_canister_id_text).unwrap();
-        let agent = build_agent(pem_identity_path, canister_id);
+        let canister_id = Principal::from_text(ISP_CANISTER_ID_TEXT).unwrap();
+        let agent = build_agent(pem_identity_path);
         let response_blob = agent
             .query(&canister_id, "getUserICSPs")
             .with_arg(Encode!().expect("encode error"))
@@ -77,8 +77,8 @@ pub mod isp_sdk {
     }
 
     pub async fn get_sub_account(pem_identity_path: &str) -> String {
-        let canister_id = Principal::from_text(isp_canister_id_text).unwrap();
-        let agent = build_agent(pem_identity_path, canister_id);
+        let canister_id = Principal::from_text(ISP_CANISTER_ID_TEXT).unwrap();
+        let agent = build_agent(pem_identity_path);
         let response_blob = agent
             .query(&canister_id, "getSubAccount")
             .with_arg(Encode!().expect("encode error"))
@@ -90,8 +90,8 @@ pub mod isp_sdk {
     }
 
     pub async fn get_isp_admins(pem_identity_path: &str) -> Vec<Principal> {
-        let canister_id = Principal::from_text(isp_canister_id_text).unwrap();
-        let agent = build_agent(pem_identity_path, canister_id);
+        let canister_id = Principal::from_text(ISP_CANISTER_ID_TEXT).unwrap();
+        let agent = build_agent(pem_identity_path);
         let response_blob = agent
             .query(&canister_id, "getAdmins")
             .with_arg(Encode!().expect("encode error"))
@@ -107,8 +107,8 @@ pub mod isp_sdk {
         icsp_name: &str,
         icp_amount: u64,
     ) -> CreateICSPResult {
-        let canister_id = Principal::from_text(isp_canister_id_text).unwrap();
-        let agent = build_agent(pem_identity_path, canister_id);
+        let canister_id = Principal::from_text(ISP_CANISTER_ID_TEXT).unwrap();
+        let agent = build_agent(pem_identity_path);
         let waiter = get_waiter();
         let response_blob = agent
             .update(&canister_id, "createICSP")
@@ -121,8 +121,8 @@ pub mod isp_sdk {
     }
 
     pub async fn top_up_icsp(pem_identity_path: &str, args: TopUpArgs) -> TopUpResult {
-        let canister_id = Principal::from_text(isp_canister_id_text).unwrap();
-        let agent = build_agent(pem_identity_path, canister_id);
+        let canister_id = Principal::from_text(ISP_CANISTER_ID_TEXT).unwrap();
+        let agent = build_agent(pem_identity_path);
         let waiter = get_waiter();
         let response_blob = agent
             .update(&canister_id, "topUpICSP")
@@ -142,7 +142,7 @@ pub mod isp_sdk {
         file_key: &str,
     ) -> Option<Principal> {
         let canister_id = Principal::from_text(icsp_canister_id_text).unwrap();
-        let agent = build_agent(pem_identity_path, canister_id);
+        let agent = build_agent(pem_identity_path);
         let response_blob = agent
             .query(&canister_id, "getBucketOfFile")
             .with_arg(Encode!(&file_key).expect("encode piece failed"))
@@ -158,7 +158,7 @@ pub mod isp_sdk {
         icsp_canister_id_text: &str,
     ) -> Option<Buckets> {
         let canister_id = Principal::from_text(icsp_canister_id_text).unwrap();
-        let agent = build_agent(pem_identity_path, canister_id);
+        let agent = build_agent(pem_identity_path);
         let response_blob = agent
             .query(&canister_id, "getBuckets")
             .with_arg(Encode!().expect("encode piece failed"))
@@ -174,7 +174,7 @@ pub mod isp_sdk {
         icsp_canister_id_text: &str,
     ) -> Vec<Principal> {
         let canister_id = Principal::from_text(icsp_canister_id_text).unwrap();
-        let agent = build_agent(pem_identity_path, canister_id);
+        let agent = build_agent(pem_identity_path);
         let response_blob = agent
             .query(&canister_id, "getAdmins")
             .with_arg(Encode!().expect("encode error"))
@@ -192,7 +192,7 @@ pub mod isp_sdk {
         is_http_open: bool,
     ) -> Vec<(String, String)> {
         let canister_id = Principal::from_text(icsp_canister_id_text).unwrap();
-        let agent = build_agent(pem_identity_path, canister_id);
+        let agent = build_agent(pem_identity_path);
         let waiter = get_waiter();
 
         let mut ans: Vec<(String, String)> = Vec::new();
@@ -202,20 +202,19 @@ pub mod isp_sdk {
             let pos: Vec<&str> = file_path.split(".").collect();
             let file_name = String::from(pos[0]);
             let file_type = String::from(pos[1]);
-            let file_extension = String::from(getFileType(&file_type));
+            let file_extension = String::from(get_file_type(&file_type));
             let s = folder_path.to_owned() + &file_path;
 
             let (file_size, data_slice) = get_file_from_source(&s);
 
-            let puts = build_storeArgs(
-                file_name.clone(),
+            let puts = build_store_args(
                 file_extension,
                 file_size.try_into().unwrap(),
                 &data_slice,
                 is_http_open,
             );
             for put in &puts {
-                let response_blob = agent
+                let _response_blob = agent
                     .update(&canister_id, "store")
                     .with_arg(Encode!(put).expect("encode piece failed"))
                     .call_and_wait(waiter.clone())
@@ -236,7 +235,7 @@ pub mod isp_sdk {
             get_bucket_of_file(pem_identity_path, icsp_canister_id_text, file_key)
                 .await
                 .expect("asset not have this file");
-        let agent = build_agent(pem_identity_path, bucket_canister_id);
+        let agent = build_agent(pem_identity_path);
         let waiter = get_waiter();
 
         let total_index_blob = agent
@@ -273,7 +272,7 @@ pub mod isp_sdk {
 
     pub async fn change_bucket_admin(pem_identity_path: &str, icsp_canister_id_text: &str) -> bool {
         let canister_id = Principal::from_text(icsp_canister_id_text).unwrap();
-        let agent = build_agent(pem_identity_path, canister_id);
+        let agent = build_agent(pem_identity_path);
         let waiter = get_waiter();
         let response_blob = agent
             .update(&canister_id, "change_bucket_admin")
@@ -291,7 +290,7 @@ pub mod isp_sdk {
         new_admin_text: &str,
     ) -> bool {
         let canister_id = Principal::from_text(icsp_canister_id_text).unwrap();
-        let agent = build_agent(pem_identity_path, canister_id);
+        let agent = build_agent(pem_identity_path);
         let waiter = get_waiter();
         let new_admin = Principal::from_text(new_admin_text).unwrap();
         let response_blob = agent
@@ -310,7 +309,7 @@ pub mod isp_sdk {
         new_admins_text: Vec<&str>,
     ) -> bool {
         let canister_id = Principal::from_text(icsp_canister_id_text).unwrap();
-        let agent = build_agent(pem_identity_path, canister_id);
+        let agent = build_agent(pem_identity_path);
         let waiter = get_waiter();
         let mut new_admins: Vec<Principal> = Vec::new();
         for i in new_admins_text {
@@ -334,7 +333,7 @@ pub mod isp_sdk {
         waiter
     }
 
-    fn build_agent(pem_identity_path: &str, canister_id: Principal) -> Agent {
+    fn build_agent(pem_identity_path: &str) -> Agent {
         let url = "https://ic0.app".to_string();
         let identity = Secp256k1Identity::from_pem_file(String::from(pem_identity_path)).unwrap();
         let transport = ReqwestHttpReplicaV2Transport::create(url).expect("transport error");
@@ -346,7 +345,7 @@ pub mod isp_sdk {
         agent
     }
 
-    // 从文件路径访问文件，切片并且返回 [每一片] 数组
+    // Access file from file path, slice and return [each slice] array
     fn get_file_from_source(path: &str) -> (usize, Vec<Vec<u8>>) {
         let context = fs::read(path).expect("read file failed");
         let size = context.len();
@@ -379,18 +378,17 @@ pub mod isp_sdk {
 
     fn get_file_key(digests: &Vec<Vec<u8>>) -> String {
         let mut digest = vec![0x00 as u8; 32 * digests.len()];
-        let mut index = 0;
+        let mut _index = 0;
         for bytes in digests {
             for byte in bytes {
                 digest.push(*byte);
-                index += 1;
+                _index += 1;
             }
         }
         digest_bytes(&digest)
     }
 
-    fn build_storeArgs(
-        file_name: String,
+    fn build_store_args(
         file_extension: String,
         total_size: u128,
         data_slice: &Vec<Vec<u8>>,
@@ -414,34 +412,34 @@ pub mod isp_sdk {
         puts
     }
 
-    fn getFileType(fileType: &str) -> &str {
-        if fileType == "pdf" {
+    fn get_file_type(file_type: &str) -> &str {
+        if file_type == "pdf" {
             return "application/pdf";
-        } else if fileType == "jpg" || fileType == "jpeg" {
+        } else if file_type == "jpg" || file_type == "jpeg" {
             return "image/jpg";
-        } else if fileType == "png" {
+        } else if file_type == "png" {
             return "image/png";
-        } else if fileType == "mp4" {
+        } else if file_type == "mp4" {
             return "video/mp4";
-        } else if fileType == "mp3" {
+        } else if file_type == "mp3" {
             return "audio/mp3";
-        } else if fileType == "gif" {
+        } else if file_type == "gif" {
             return "image/gif";
-        } else if fileType == "txt" {
+        } else if file_type == "txt" {
             return "text/plain";
-        } else if fileType == "ppt" || fileType == "pptx" {
+        } else if file_type == "ppt" || file_type == "pptx" {
             return "application/vnd.ms-powerpoint";
-        } else if fileType == "html" || fileType == "xhtml" {
+        } else if file_type == "html" || file_type == "xhtml" {
             return "text/html";
-        } else if fileType == "doc" || fileType == "docx" {
+        } else if file_type == "doc" || file_type == "docx" {
             return "application/msword";
-        } else if fileType == "xls" {
+        } else if file_type == "xls" {
             return "application/x-xls";
-        } else if fileType == "apk" {
+        } else if file_type == "apk" {
             return "application/vnd.android.package-archive";
-        } else if fileType == "svg" {
+        } else if file_type == "svg" {
             return "text/xml";
-        } else if fileType == "wmv" {
+        } else if file_type == "wmv" {
             return "video/x-ms-wmv";
         } else {
             return "application/octet-stream";
