@@ -1,0 +1,50 @@
+type TransformArgs = 
+ record {
+   icp_amount: nat64;
+   to_canister_id: principal;
+ };
+type TopUpArgs = 
+ record {
+   icp_amount: nat64;
+   icsp_canisterId: principal;
+ };
+type Result_1 = 
+ variant {
+   err: Error;
+   ok: principal;
+ };
+type Result = 
+ variant {
+   err: Error;
+   ok;
+ };
+type ISP = 
+ service {
+   addAdmin: (principal) -> (bool);
+   changeAdmins: (vec principal) -> (bool);
+   clearLog: () -> ();
+   createICSP: (text, nat64) -> (Result_1);
+   getAdmins: () -> (vec principal) query;
+   getLog: () -> (vec record {
+                        nat;
+                        text;
+                      }) query;
+   getSubAccount: () -> (AccountIdentifier) query;
+   getUserICSPs: () -> (vec record {
+                              text;
+                              principal;
+                            }) query;
+   topUpICSP: (TopUpArgs) -> (Result);
+   topUpSelf: (principal) -> ();
+   transformIcp: (TransformArgs) -> (Result);
+   updateICSPWasm: (vec nat8) -> (text);
+   wallet_receive: () -> ();
+ };
+type Error = 
+ variant {
+   Create_Canister_Failed: nat;
+   Ledger_Transfer_Failed: nat;
+   Unauthorized;
+ };
+type AccountIdentifier = blob;
+service : () -> ISP

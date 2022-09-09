@@ -1,4 +1,4 @@
-use candid::{Nat, Principal};
+use candid::Principal;
 use isp_sdk::isp::{self, CreateICSPResult};
 
 #[tokio::main]
@@ -21,7 +21,7 @@ async fn main() {
     }
     println!("\n");
 
-    let response_4 = create_icsp("icsp-1", 1 as u64).await;
+    let response_4 = create_icsp("icsp-1", 100_000_000 as u64).await;
     match response_4 {
         CreateICSPResult::Ok(pr) => println!("create ok, canister_id:{:?}", pr),
         CreateICSPResult::Err(er) => println!("{:?}", er),
