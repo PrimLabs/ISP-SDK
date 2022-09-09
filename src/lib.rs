@@ -1,4 +1,4 @@
-pub mod isp_sdk {
+pub mod isp {
 
     use candid::{CandidType, Decode, Encode, Nat};
     use garcon::Delay;
