@@ -13,14 +13,14 @@ pub mod isp {
     const UPDATE_SIZE: usize = 1992288;
     static ISP_CANISTER_ID_TEXT: &'static str = "p2pki-xyaaa-aaaan-qatua-cai";
 
-    #[derive(CandidType, Deserialize)]
+    #[derive(CandidType, Deserialize, Debug)]
     pub enum Error {
         CreateCanisterFailed(Nat),
         LedgerTransferFailed(Nat),
         Unauthorized,
     }
 
-    #[derive(CandidType, Deserialize)]
+    #[derive(CandidType, Deserialize, Debug)]
     pub enum CreateICSPResult {
         Ok(Principal),
         Err(Error),
@@ -37,7 +37,7 @@ pub mod isp {
         index: Nat,
     }
 
-    #[derive(CandidType, Deserialize)]
+    #[derive(CandidType, Deserialize, Debug)]
     pub enum TopUpResult {
         Ok,
         Err(Error),
@@ -49,13 +49,13 @@ pub mod isp {
         icp_amount: u64,
     }
 
-    #[derive(CandidType, Deserialize)]
+    #[derive(CandidType, Deserialize, Debug)]
     pub struct LiveBucketExt {
         used_memory: Nat,
         canister_id: Principal,
     }
 
-    #[derive(CandidType, Deserialize)]
+    #[derive(CandidType, Deserialize, Debug)]
     pub struct Buckets {
         old_buckets: Vec<Principal>,
         live_buckets: Vec<LiveBucketExt>,

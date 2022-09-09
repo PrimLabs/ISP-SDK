@@ -4,9 +4,9 @@ version = 3
 
 [[package]]
 name = "ISP-SDK"
-version = "0.1.0-alpha.0"
+version = "0.1.0-alpha.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2c9dd2116a105a490719542fea0822e560b2b0ac6d939ae216d12ea1b1d77265"
+checksum = "ef29666c228a1da4bb087afbbea811095c3b30c4812ff704dec4e561054fa62a"
 dependencies = [
  "candid",
  "garcon",
