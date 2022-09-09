@@ -4,19 +4,17 @@ version = 3
 
 [[package]]
 name = "ISP-SDK"
-version = "0.1.0-alpha.0.2"
+version = "0.1.0-alpha.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fd74f35555d3acadebc2f29ea636f2e67d8c905b8137779bcd440606487d2680"
+checksum = "7ef66f79265197466d00d68fd21389e95c28bccb480ee9ebd013bfc7184ef07c"
 dependencies = [
  "candid",
  "garcon",
  "hex",
  "ic-agent",
- "ic-cdk",
  "rayon",
  "serde",
  "sha256",
- "tokio",
 ]
 
 [[package]]
@@ -786,17 +784,6 @@ dependencies = [
  "simple_asn1",
  "thiserror",
  "url",
-]
-
-[[package]]
-name = "ic-cdk"
-version = "0.5.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4ebabbd2e082472e93928ec9725a5aeec4572284e07bf399f3e1eb6a358a4ba6"
-dependencies = [
- "candid",
- "cfg-if",
- "serde",
 ]
 
 [[package]]
