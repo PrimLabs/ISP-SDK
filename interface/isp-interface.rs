@@ -17,7 +17,7 @@ pub enum CreateICSPResult {
 
 #[derive(CandidType, Deserialize)]
 pub struct TopUpArgs {
-    icsp_canister_id: Principal,
+    icsp_canisterId: Principal,
     icp_amount: u64,
 }
 

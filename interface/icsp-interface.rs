@@ -2,13 +2,13 @@ use candid::{Nat, Principal};
 use ic_cdk::api::call::CallResult;
 use ic_cdk::export::candid::{self, CandidType, Deserialize};
 
-#[derive(CandidType, Deserialize)]
+#[derive(CandidType, Deserialize, Debug)]
 struct LiveBucketExt {
     used_memory: Nat,
     canister_id: Principal,
 }
 
-#[derive(CandidType, Deserialize)]
+#[derive(CandidType, Deserialize, Debug)]
 struct Buckets {
     old_buckets: Vec<Principal>,
     live_buckets: Vec<LiveBucketExt>,

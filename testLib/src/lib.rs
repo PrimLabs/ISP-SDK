@@ -45,8 +45,8 @@ pub mod isp {
 
     #[derive(CandidType, Deserialize)]
     pub struct TopUpArgs {
-        icsp_canister_id: Principal,
-        icp_amount: u64,
+        pub icsp_canisterId: Principal,
+        pub icp_amount: u64,
     }
 
     #[derive(CandidType, Deserialize, Debug)]
@@ -349,7 +349,6 @@ pub mod isp {
     fn get_file_from_source(path: &str) -> (usize, Vec<Vec<u8>>) {
         let context = fs::read(path).expect("read file failed");
         let size = context.len();
-        println!("file size : {}", context.len());
         let slice_size = if context.len() % UPDATE_SIZE == 0 {
             context.len() / UPDATE_SIZE
         } else {
@@ -363,7 +362,6 @@ pub mod isp {
                 res.push(context[index * UPDATE_SIZE..(index + 1) * UPDATE_SIZE].to_owned())
             }
         }
-        println!("file chunk number : {}", res.len());
         (size, res)
     }
 
