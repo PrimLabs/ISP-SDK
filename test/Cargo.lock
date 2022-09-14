@@ -1711,7 +1711,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "testLib"
+name = "test"
 version = "0.1.0"
 dependencies = [
  "candid",

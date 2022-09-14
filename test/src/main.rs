@@ -41,7 +41,7 @@ mod test_ic {
         .await;
         match response_6 {
             Some(response) => println!("the file in bucekt:{:?}\n", response.to_text()),
-            None => println!("do not have this file"),
+            None => println!("no bucket have this file"),
         }
 
         let response_7 = get_icsp_buckets("4radi-oqaaa-aaaan-qapwa-cai").await;
@@ -105,47 +105,35 @@ mod test_ic {
 
     // return (icsp_name, icsp_canister_id)
     async fn get_user_icsps() -> Vec<(String, Principal)> {
-        let response = isp::get_user_icsps("identities/identity.pem").await;
-        response
+        isp::get_user_icsps("identities/identity.pem").await
     }
 
     async fn get_sub_account() -> String {
-        let response = isp::get_sub_account("identities/identity.pem").await;
-        response
+        isp::get_sub_account("identities/identity.pem").await
     }
 
     async fn get_isp_admins() -> Vec<Principal> {
-        let response = isp::get_isp_admins("identities/identity.pem").await;
-        response
+        isp::get_isp_admins("identities/identity.pem").await
     }
 
     async fn create_icsp(icsp_name: &str, icp_amount: u64) -> CreateICSPResult {
-        let response = isp::create_icsp("identities/identity.pem", icsp_name, icp_amount).await;
-        response
+        isp::create_icsp("identities/identity.pem", icsp_name, icp_amount).await
     }
 
     async fn top_up_icsp(args: TopUpArgs) -> TopUpResult {
-        let response = isp::top_up_icsp("identities/identity.pem", args).await;
-        response
+        isp::top_up_icsp("identities/identity.pem", args).await
     }
 
     async fn get_bucket_of_file(icsp_canister_id_text: &str, file_key: &str) -> Option<Principal> {
-        let response =
-            icsp::get_bucket_of_file("identities/identity.pem", icsp_canister_id_text, file_key)
-                .await;
-        response
+        icsp::get_bucket_of_file("identities/identity.pem", icsp_canister_id_text, file_key).await
     }
 
     async fn get_icsp_buckets(icsp_canister_id_text: &str) -> Option<Buckets> {
-        let response =
-            icsp::get_icsp_buckets("identities/identity.pem", icsp_canister_id_text).await;
-        response
+        icsp::get_icsp_buckets("identities/identity.pem", icsp_canister_id_text).await
     }
 
     async fn get_icsp_admins(icsp_canister_id_text: &str) -> Vec<Principal> {
-        let response =
-            icsp::get_icsp_admins("identities/identity.pem", icsp_canister_id_text).await;
-        response
+        icsp::get_icsp_admins("identities/identity.pem", icsp_canister_id_text).await
     }
 
     async fn store_file(
@@ -153,46 +141,39 @@ mod test_ic {
         icsp_canister_id_text: &str,
         is_http_open: bool,
     ) -> Vec<(String, String)> {
-        let response = icsp::store_file(
+        icsp::store_file(
             "identities/identity.pem",
             folder_path,
             icsp_canister_id_text,
             is_http_open,
         )
-        .await;
-        response
+        .await
     }
 
     async fn get_file(icsp_canister_id_text: &str, file_key: &str) -> (Vec<u8>, String) {
-        let response =
-            icsp::get_file("identities/identity.pem", icsp_canister_id_text, file_key).await;
-        response
+        icsp::get_file("identities/identity.pem", icsp_canister_id_text, file_key).await
     }
 
     async fn change_bucket_admin(icsp_canister_id_text: &str) -> bool {
-        let response =
-            icsp::change_bucket_admin("identities/identity.pem", icsp_canister_id_text).await;
-        response
+        icsp::change_bucket_admin("identities/identity.pem", icsp_canister_id_text).await
     }
 
     async fn add_icsp_admin(icsp_canister_id_text: &str, new_admin_text: &str) -> bool {
-        let response = icsp::add_icsp_admin(
+        icsp::add_icsp_admin(
             "identities/identity.pem",
             icsp_canister_id_text,
             new_admin_text,
         )
-        .await;
-        response
+        .await
     }
 
     async fn change_icsp_admin(icsp_canister_id_text: &str, new_admins_text: Vec<&str>) -> bool {
-        let response = icsp::change_icsp_admin(
+        icsp::change_icsp_admin(
             "identities/identity.pem",
             icsp_canister_id_text,
             new_admins_text,
         )
-        .await;
-        response
+        .await
     }
 }
 
