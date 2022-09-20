@@ -2,35 +2,35 @@ use candid::{Nat, Principal};
 use ic_cdk::api::call::CallResult;
 use ic_cdk::export::candid::{self, CandidType, Deserialize};
 
-#[derive(CandidType, Deserialize)]
+#[derive(CandidType, Deserialize, Debug)]
 pub enum Error {
     Create_Canister_Failed(Nat),
     Ledger_Transfer_Failed(Nat),
     Unauthorized,
 }
 
-#[derive(CandidType, Deserialize)]
+#[derive(CandidType, Deserialize, Debug)]
 pub enum CreateICSPResult {
     ok(Principal),
     err(Error),
 }
 
-#[derive(CandidType, Deserialize)]
+#[derive(CandidType, Deserialize, Debug)]
 pub struct TopUpArgs {
-    icsp_canisterId: Principal,
-    icp_amount: u64,
+    pub icsp_canisterId: Principal,
+    pub icp_amount: u64,
 }
 
-#[derive(CandidType, Deserialize)]
+#[derive(CandidType, Deserialize, Debug)]
 pub enum TopUpResult {
     ok,
     err(Error),
 }
 
-#[derive(CandidType, Deserialize)]
+#[derive(CandidType, Deserialize, Debug)]
 pub struct TransformArgs {
-    to_canister_id: Principal,
-    icp_amount: u64,
+    pub to_canister_id: Principal,
+    pub icp_amount: u64,
 }
 
 pub type ISP = candid::Service;

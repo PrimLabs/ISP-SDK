@@ -3,26 +3,26 @@ use ic_cdk::api::call::CallResult;
 use ic_cdk::export::candid::{self, CandidType, Deserialize};
 
 #[derive(CandidType, Deserialize, Debug)]
-struct LiveBucketExt {
-    used_memory: Nat,
-    canister_id: Principal,
+pub struct LiveBucketExt {
+    pub used_memory: Nat,
+    pub canister_id: Principal,
 }
 
 #[derive(CandidType, Deserialize, Debug)]
-struct Buckets {
-    old_buckets: Vec<Principal>,
-    live_buckets: Vec<LiveBucketExt>,
+pub struct Buckets {
+    pub old_buckets: Vec<Principal>,
+    pub live_buckets: Vec<LiveBucketExt>,
 }
 
 #[derive(CandidType, Deserialize)]
-struct StoreArgs {
-    key: String,
-    value: Vec<u8>,
-    total_index: Nat,
-    file_type: String,
-    is_http_open: bool,
-    total_size: u64,
-    index: Nat,
+pub struct StoreArgs {
+    pub key: String,
+    pub value: Vec<u8>,
+    pub total_index: Nat,
+    pub file_type: String,
+    pub is_http_open: bool,
+    pub total_size: u64,
+    pub index: Nat,
 }
 
 type icsp = candid::Service;

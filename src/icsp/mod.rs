@@ -6,32 +6,33 @@ use rayon::prelude::*;
 use serde::Deserialize;
 use sha256::digest_bytes;
 use std::fs::{self};
-
-#[derive(CandidType, Deserialize)]
-pub struct StoreArgs {
-    key: String,
-    value: Vec<u8>,
-    total_index: Nat,
-    file_type: String,
-    is_http_open: bool,
-    total_size: u64,
-    index: Nat,
-}
-
-#[derive(CandidType, Deserialize, Debug)]
-pub struct LiveBucketExt {
-    pub used_memory: Nat,
-    pub canister_id: Principal,
-}
-
-#[derive(CandidType, Deserialize, Debug)]
-pub struct Buckets {
-    pub old_buckets: Vec<Principal>,
-    pub live_buckets: Vec<LiveBucketExt>,
-}
+mod icsp_did;
+pub use icsp_did::{Buckets, LiveBucketExt, StoreArgs};
 
 const UPDATE_SIZE: usize = 1992288;
 
+/// Get the bucket where the file is stored
+///
+/// Example code :
+/// ``` no_run
+/// use ic_agent::ic_types::Principal;
+/// use isp_sdk::icsp::{self};
+///
+/// async fn get_bucket_of_file(icsp_canister_id_text: &str, file_key: &str) -> Option<Principal> {
+///     icsp::get_bucket_of_file("identities/identity.pem", icsp_canister_id_text, file_key).await
+/// }
+///
+/// #[tokio::main]
+/// async fn main() {
+///     let response = get_bucket_of_file(
+///             "4radi-oqaaa-aaaan-qapwa-cai",
+///             "219ae72471e1857546a9311079c3c02750b15c9e29179498658ba7b5324dd2a5",
+///     ).await;
+///     match response {
+///         Some(response_) => println!("the file in bucekt:{:?}\n", response_.to_text()),
+///         None => println!("no bucket have this file"),
+///     }
+/// }
 pub async fn get_bucket_of_file(
     pem_identity_path: &str,
     icsp_canister_id_text: &str,
@@ -49,6 +50,38 @@ pub async fn get_bucket_of_file(
     response
 }
 
+/// Get buckets of user's icsp
+///
+/// Example code :
+/// ```no_run
+/// use isp_sdk::icsp::{self, Buckets};
+///
+/// async fn get_icsp_buckets(icsp_canister_id_text: &str) -> Option<Buckets> {
+///     icsp::get_icsp_buckets("identities/identity.pem", icsp_canister_id_text).await
+/// }
+///
+/// #[tokio::main]
+/// async fn main() {
+///     let response = get_icsp_buckets("4radi-oqaaa-aaaan-qapwa-cai").await;
+///     match response {
+///         Some(response_) => {
+///                 println!("old buckets:");
+///                 for i in &response_.old_buckets {
+///                     println!("{:?}", i.to_text());
+///                 }
+///                 println!("Live Buckets:");
+///                 for i in &response_.live_buckets {
+///                     println!(
+///                         "canister_id:{:?}, used_memory:{:?}",
+///                         i.canister_id.to_text(),
+///                         i.used_memory,
+///                     );
+///                 }
+///             },
+///         None => println!("icsp do not have buckets"),
+///     }
+/// }
+/// ```
 pub async fn get_icsp_buckets(
     pem_identity_path: &str,
     icsp_canister_id_text: &str,
@@ -65,6 +98,25 @@ pub async fn get_icsp_buckets(
     response
 }
 
+/// Transform icp to cycles and topup tp icsp
+///
+/// Example code :
+/// ``` no_run
+/// use ic_agent::ic_types::Principal;
+/// use isp_sdk::icsp;
+///
+/// async fn get_icsp_admins(icsp_canister_id_text: &str) -> Vec<Principal> {
+///     icsp::get_icsp_admins("identities/identity.pem", icsp_canister_id_text).await
+/// }
+///
+/// #[tokio::main]
+/// async fn main() {
+///     let response = get_icsp_admins("4radi-oqaaa-aaaan-qapwa-cai").await;
+///     println!("icsp admins:");
+///     for i in &response {
+///         println!("{:?}", i.to_text());
+///     }
+/// }
 pub async fn get_icsp_admins(
     pem_identity_path: &str,
     icsp_canister_id_text: &str,
@@ -81,6 +133,35 @@ pub async fn get_icsp_admins(
     response
 }
 
+/// Store files
+///
+/// If http open,url format: icsp_canister_id.raw.ic0.app/file_key
+///
+/// Example code :
+/// ``` no_run
+/// use isp_sdk::icsp;
+///
+/// async fn store_file(
+///     folder_path: &str,
+///     icsp_canister_id_text: &str,
+///     is_http_open: bool,
+/// ) -> Vec<(String, String)> {
+///     icsp::store_file(
+///         "identities/identity.pem",
+///         folder_path,
+///         icsp_canister_id_text,
+///         is_http_open,
+///     ).await
+/// }
+///
+/// #[tokio::main]
+/// async fn main() {
+///     let response = store_file("source/", "4radi-oqaaa-aaaan-qapwa-cai", true).await;
+///     for i in &response {
+///         println!("file_name:{:?},file_key:{:?}", i.0, i.1);
+///     }
+/// }
+/// ```
 pub async fn store_file(
     pem_identity_path: &str,
     folder_path: &str,
@@ -122,6 +203,25 @@ pub async fn store_file(
     ans
 }
 
+/// Get file from icsp
+///
+/// Example code :
+/// ``` no_run
+/// use isp_sdk::icsp;
+///
+/// async fn get_file(icsp_canister_id_text: &str, file_key: &str) -> (Vec<u8>, String) {
+///     icsp::get_file("identities/identity.pem", icsp_canister_id_text, file_key).await
+/// }
+///
+/// #[tokio::main]
+/// async fn main() {
+///     let response_10 = get_file(
+///         "4radi-oqaaa-aaaan-qapwa-cai",
+///         "efb8933d26461d4a00bd28824e64d52ff11ebaa6a3584b2478c7f8c0e89b3c8c",
+///     ).await;
+///     println!("file:{:?},file_type:{:?}", response_10.0, response_10.1);
+/// }
+/// ```
 pub async fn get_file(
     pem_identity_path: &str,
     icsp_canister_id_text: &str,
@@ -166,6 +266,22 @@ pub async fn get_file(
     (payload, file_type)
 }
 
+/// Synchronize the admins of icsp and bucket
+///
+/// Example code :
+/// ``` no_run
+/// use isp_sdk::icsp;
+///
+/// async fn change_bucket_admin(icsp_canister_id_text: &str) -> bool {
+///     icsp::change_bucket_admin("identities/identity.pem", icsp_canister_id_text).await
+/// }
+///
+/// #[tokio::main]
+/// async fn main() {
+///     response = change_bucket_admin("4radi-oqaaa-aaaan-qapwa-cai").await;
+///     println!("change bucket admin result:{:?}", response);
+/// }
+/// ```
 pub async fn change_bucket_admin(pem_identity_path: &str, icsp_canister_id_text: &str) -> bool {
     let canister_id = Principal::from_text(icsp_canister_id_text).unwrap();
     let agent = build_agent(pem_identity_path);
@@ -180,6 +296,29 @@ pub async fn change_bucket_admin(pem_identity_path: &str, icsp_canister_id_text:
     response
 }
 
+/// Add admin of icsp
+///
+/// Example code :
+/// ``` no_run
+/// use isp_sdk::icsp;
+///
+/// async fn add_icsp_admin(icsp_canister_id_text: &str, new_admin_text: &str) -> bool {
+///     icsp::add_icsp_admin(
+///         "identities/identity.pem",
+///         icsp_canister_id_text,
+///         new_admin_text,
+///     ).await
+/// }
+///
+/// #[tokio::main]
+/// async fn main() {
+///     let response = add_icsp_admin(
+///         "4radi-oqaaa-aaaan-qapwa-cai",
+///         "bxgws-37y5d-tgmpr-hekbp-y3uxo-yicgs-fo7p3-ccnta-kidrz-74onh-pae",
+///     ).await;
+///     println!("add icsp admin result:{:?}", response);
+/// }
+/// ```
 pub async fn add_icsp_admin(
     pem_identity_path: &str,
     icsp_canister_id_text: &str,
@@ -199,6 +338,32 @@ pub async fn add_icsp_admin(
     response
 }
 
+/// change admins of icsp
+///
+/// Example code :
+/// ``` no_run
+/// use isp_sdk::icsp;
+///
+/// async fn change_icsp_admin(icsp_canister_id_text: &str, new_admins_text: Vec<&str>) -> bool {
+///     icsp::change_icsp_admin(
+///         "identities/identity.pem",
+///         icsp_canister_id_text,
+///         new_admins_text,
+///     ).await
+/// }
+///
+/// #[tokio::main]
+/// async fn main() {
+///     let response = change_icsp_admin(
+///         "4radi-oqaaa-aaaan-qapwa-cai",
+///         vec![
+///             "5gdgj-5vp3h-a4vts-zlfdz-oqoan-t6gbc-nh7eo-oj33d-pgesh-wcvb4-sqe",
+///             "rqtm7-blweq-njir5-hqz4o-lmz7w-zap72-64cug-eqe7x-aryqg-bvwib-zqe",
+///         ],
+///     ).await;
+///     println!("change icsp admin result:{:?}", response);
+/// }
+/// ```
 pub async fn change_icsp_admin(
     pem_identity_path: &str,
     icsp_canister_id_text: &str,

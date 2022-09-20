@@ -1,0 +1,14 @@
+type CertifiedLog = record {
+  context : text;
+  cert : vec nat8;
+  time : nat64;
+  witness : vec nat8;
+  index : nat64;
+};
+type Log = record { context : text };
+service : {
+  addAdmin : (principal) -> (bool);
+  changeAdmin : (vec principal) -> (bool);
+  getLogs : (nat64, nat64) -> (opt vec CertifiedLog) query;
+  put : (Log) -> ();
+}

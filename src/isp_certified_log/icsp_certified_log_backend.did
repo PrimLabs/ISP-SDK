@@ -1,0 +1,18 @@
+type Buckets = record {
+  old_buckets : vec principal;
+  live_buckets : LiveBucket;
+};
+type LiveBucket = record { bucket_id : text; used_memory : nat };
+type StoreLog = record { context : text };
+service : {
+  addAdmin : (principal) -> ();
+  deleteAdmin : (principal) -> ();
+  getAdmins : () -> (vec principal) query;
+  getBuckets : () -> (opt Buckets) query;
+  getLogNum : () -> (nat) query;
+  getLogs : (nat, nat) -> (opt vec record { nat64; nat64; principal }) query;
+  init : () -> (LiveBucket);
+  store : (StoreLog) -> ();
+  topUpBucket : (nat) -> ();
+  updateBucketCanisterController : (principal, vec principal) -> (bool);
+}

@@ -1,34 +1,11 @@
+mod isp_did;
 use candid::{CandidType, Decode, Encode, Nat};
 use garcon::Delay;
 use hex::{self};
 use ic_agent::agent::http_transport::ReqwestHttpReplicaV2Transport;
 use ic_agent::{ic_types::Principal, identity::Secp256k1Identity, Agent};
+pub use isp_did::{CreateICSPResult, Error, TopUpArgs, TopUpResult};
 use serde::Deserialize;
-
-#[derive(CandidType, Deserialize, Debug)]
-pub enum Error {
-    Create_Canister_Failed(Nat),
-    Ledger_Transfer_Failed(Nat),
-    Unauthorized,
-}
-
-#[derive(CandidType, Deserialize, Debug)]
-pub enum CreateICSPResult {
-    ok(Principal),
-    err(Error),
-}
-
-#[derive(CandidType, Deserialize, Debug)]
-pub enum TopUpResult {
-    ok,
-    err(Error),
-}
-
-#[derive(CandidType, Deserialize)]
-pub struct TopUpArgs {
-    pub icsp_canisterId: Principal,
-    pub icp_amount: u64,
-}
 
 static ISP_CANISTER_ID_TEXT: &'static str = "p2pki-xyaaa-aaaan-qatua-cai";
 
