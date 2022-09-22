@@ -15,6 +15,36 @@ const UPDATE_SIZE: usize = 1992288;
 ///
 /// Example code :
 /// ``` no_run
+/// use candid::Nat;
+/// use isp_sdk::icsp;
+///
+/// async fn get_cycle_balance(icsp_canister_id_text: &str) -> Nat {
+///     icsp::get_cycle_balance("identities/identity.pem", icsp_canister_id_text).await
+/// }
+///
+/// #[tokio::main]
+/// async fn main() {
+///     println!(
+///         "icsp cycle balance:{:?}\n",
+///         get_cycle_balance("4radi-oqaaa-aaaan-qapwa-cai").await
+///     );
+/// }
+pub async fn get_cycle_balance(pem_identity_path: &str, icsp_canister_id_text: &str) -> Nat {
+    let canister_id = Principal::from_text(icsp_canister_id_text).unwrap();
+    let response_blob = build_agent(pem_identity_path)
+        .query(&canister_id, "getCycleBalance")
+        .with_arg(Encode!().expect("encode piece failed"))
+        .call()
+        .await
+        .expect("response error");
+    let response = Decode!(&response_blob, Nat).unwrap();
+    response
+}
+
+/// Get the bucket where the file is stored
+///
+/// Example code :
+/// ``` no_run
 /// use ic_agent::ic_types::Principal;
 /// use isp_sdk::icsp::{self};
 ///
@@ -39,8 +69,7 @@ pub async fn get_bucket_of_file(
     file_key: &str,
 ) -> Option<Principal> {
     let canister_id = Principal::from_text(icsp_canister_id_text).unwrap();
-    let agent = build_agent(pem_identity_path);
-    let response_blob = agent
+    let response_blob = build_agent(pem_identity_path)
         .query(&canister_id, "getBucketOfFile")
         .with_arg(Encode!(&file_key).expect("encode piece failed"))
         .call()
@@ -87,8 +116,7 @@ pub async fn get_icsp_buckets(
     icsp_canister_id_text: &str,
 ) -> Option<Buckets> {
     let canister_id = Principal::from_text(icsp_canister_id_text).unwrap();
-    let agent = build_agent(pem_identity_path);
-    let response_blob = agent
+    let response_blob = build_agent(pem_identity_path)
         .query(&canister_id, "getBuckets")
         .with_arg(Encode!().expect("encode piece failed"))
         .call()
@@ -122,8 +150,7 @@ pub async fn get_icsp_admins(
     icsp_canister_id_text: &str,
 ) -> Vec<Principal> {
     let canister_id = Principal::from_text(icsp_canister_id_text).unwrap();
-    let agent = build_agent(pem_identity_path);
-    let response_blob = agent
+    let response_blob = build_agent(pem_identity_path)
         .query(&canister_id, "getAdmins")
         .with_arg(Encode!().expect("encode error"))
         .call()
@@ -170,7 +197,6 @@ pub async fn store_file(
 ) -> Vec<(String, String)> {
     let canister_id = Principal::from_text(icsp_canister_id_text).unwrap();
     let agent = build_agent(pem_identity_path);
-    let waiter = get_waiter();
 
     let mut ans: Vec<(String, String)> = Vec::new();
     let paths = fs::read_dir(&folder_path).unwrap();
@@ -194,7 +220,7 @@ pub async fn store_file(
             let _response_blob = agent
                 .update(&canister_id, "store")
                 .with_arg(Encode!(put).expect("encode piece failed"))
-                .call_and_wait(waiter.clone())
+                .call_and_wait(get_waiter())
                 .await
                 .expect("response error");
         }
@@ -231,12 +257,11 @@ pub async fn get_file(
         .await
         .expect("can not find bucket have this file");
     let agent = build_agent(pem_identity_path);
-    let waiter = get_waiter();
 
     let total_index_blob = agent
         .update(&bucket_canister_id, "getFileTotalIndex")
         .with_arg(Encode!(&file_key).expect("encode failed"))
-        .call_and_wait(waiter)
+        .call_and_wait(get_waiter())
         .await
         .expect("response error");
     let total_index = Decode!(&total_index_blob, Nat).unwrap();
@@ -284,12 +309,10 @@ pub async fn get_file(
 /// ```
 pub async fn change_bucket_admin(pem_identity_path: &str, icsp_canister_id_text: &str) -> bool {
     let canister_id = Principal::from_text(icsp_canister_id_text).unwrap();
-    let agent = build_agent(pem_identity_path);
-    let waiter = get_waiter();
-    let response_blob = agent
+    let response_blob = build_agent(pem_identity_path)
         .update(&canister_id, "change_bucket_admin")
         .with_arg(Encode!().expect("encode error"))
-        .call_and_wait(waiter)
+        .call_and_wait(get_waiter())
         .await
         .expect("response error");
     let response = Decode!(&response_blob, bool).unwrap();
@@ -325,13 +348,11 @@ pub async fn add_icsp_admin(
     new_admin_text: &str,
 ) -> bool {
     let canister_id = Principal::from_text(icsp_canister_id_text).unwrap();
-    let agent = build_agent(pem_identity_path);
-    let waiter = get_waiter();
     let new_admin = Principal::from_text(new_admin_text).unwrap();
-    let response_blob = agent
+    let response_blob = build_agent(pem_identity_path)
         .update(&canister_id, "addAdmin")
         .with_arg(Encode!(&new_admin).expect("encode error"))
-        .call_and_wait(waiter)
+        .call_and_wait(get_waiter())
         .await
         .expect("response error");
     let response = Decode!(&response_blob, bool).unwrap();
@@ -370,16 +391,14 @@ pub async fn change_icsp_admin(
     new_admins_text: Vec<&str>,
 ) -> bool {
     let canister_id = Principal::from_text(icsp_canister_id_text).unwrap();
-    let agent = build_agent(pem_identity_path);
-    let waiter = get_waiter();
     let mut new_admins: Vec<Principal> = Vec::new();
     for i in new_admins_text {
         new_admins.push(Principal::from_text(i).unwrap());
     }
-    let response_blob = agent
+    let response_blob = build_agent(pem_identity_path)
         .update(&canister_id, "changeAdmin")
         .with_arg(Encode!(&new_admins).expect("encode error"))
-        .call_and_wait(waiter)
+        .call_and_wait(get_waiter())
         .await
         .expect("response error");
     let response = Decode!(&response_blob, bool).unwrap();

@@ -2,6 +2,13 @@ use candid::{Nat, Principal};
 use ic_cdk::api::call::CallResult;
 use ic_cdk::export::candid::{self, CandidType, Deserialize};
 
+type BlockIndex = u64;
+
+#[derive(CandidType, Deserialize, Debug)]
+pub struct Token {
+    e8s: u64,
+}
+
 #[derive(CandidType, Deserialize, Debug)]
 pub enum Error {
     Create_Canister_Failed(Nat),
@@ -13,6 +20,21 @@ pub enum Error {
 pub enum CreateICSPResult {
     ok(Principal),
     err(Error),
+}
+
+#[derive(CandidType, Deserialize, Debug)]
+pub enum TransferError {
+    TxTooOld { allowed_window_nanos: u64 },
+    BadFee { expected_fee: Token },
+    TxDuplicate { duplicate_of: BlockIndex },
+    TxCreatedInFuture,
+    InsufficientFunds { balance: Token },
+}
+
+#[derive(CandidType, Deserialize, Debug)]
+pub enum TransferResult {
+    Ok(BlockIndex),
+    Err(TransferError),
 }
 
 #[derive(CandidType, Deserialize, Debug)]
@@ -48,6 +70,18 @@ impl SERVICE {
 
     pub async fn get_admins(&self) -> CallResult<(Vec<Principal>,)> {
         ic_cdk::call(self.0, "getAdmins", ()).await
+    }
+
+    pub async fn get_icp_balance(&self) -> CallResult<(u64,)> {
+        ic_cdk::call(self.0, "getICPBalance", ()).await
+    }
+
+    pub async fn transfer_out_icp(
+        &self,
+        to: AccountIdentifier,
+        amount: u64,
+    ) -> CallResult<(TransferResult,)> {
+        ic_cdk::call(self.0, "transferOutICP", (to, amount)).await
     }
 
     pub async fn get_user_icsps(&self) -> CallResult<(Vec<(String, Principal)>,)> {

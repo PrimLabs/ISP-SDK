@@ -29,6 +29,10 @@ type icsp = candid::Service;
 
 struct SERVICE(Principal);
 impl SERVICE {
+    pub async fn get_cycle_balance(&self) -> CallResult<(Nat,)> {
+        ic_cdk::call(self.0, "getCycleBalance", ()).await
+    }
+
     pub async fn add_admin(&self, new_admin: Principal) -> CallResult<(bool,)> {
         ic_cdk::call(self.0, "addAdmin", (new_admin,)).await
     }

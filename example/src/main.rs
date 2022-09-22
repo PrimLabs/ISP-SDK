@@ -1,8 +1,8 @@
 mod test_isp {
     extern crate isp_sdk;
-    use candid::Principal;
+    use candid::{Nat, Principal};
     use icsp::Buckets;
-    use isp::{CreateICSPResult, TopUpArgs, TopUpResult};
+    use isp::{BurnArgs, BurnResult, CreateICSPResult, TopUpArgs, TopUpResult, TransferResult};
     use isp_sdk::{icsp, isp};
 
     pub async fn test() {
@@ -14,8 +14,7 @@ mod test_isp {
             println!("user do not have icsp\n");
         }
 
-        let response_2 = get_sub_account().await;
-        println!("SubAccount:{:?}\n", response_2);
+        println!("SubAccount:{:?}\n", get_sub_account().await);
 
         let response_3 = get_isp_admins().await;
         println!("isp admins:");
@@ -24,7 +23,12 @@ mod test_isp {
         }
         println!("\n");
 
-        let response_4 = create_icsp("icsp-1", 20_000_000 as u64).await;
+        let response_4 = create_icsp(
+            "icsp-1",
+            15_000_000 as u64,
+            10_000_000_000_000 as u64 - 2_000_000_000 as u64,
+        )
+        .await;
         println!("create icsp result:{:?}\n", response_4);
 
         let top_up_args = TopUpArgs {
@@ -44,7 +48,7 @@ mod test_isp {
             None => println!("no bucket have this file"),
         }
 
-        let response_7 = get_icsp_buckets("4radi-oqaaa-aaaan-qapwa-cai").await;
+        let response_7 = get_icsp_buckets("tawoh-5iaaa-aaaao-aalfq-cai").await;
         match response_7 {
             Some(response) => {
                 println!("old buckets:");
@@ -82,8 +86,10 @@ mod test_isp {
         .await;
         println!("file:{:?},file_type:{:?}", response_10.0, response_10.1);
 
-        let response_11 = change_bucket_admin("4radi-oqaaa-aaaan-qapwa-cai").await;
-        println!("change bucket admin result:{:?}", response_11);
+        println!(
+            "change bucket admin result:{:?}",
+            change_bucket_admin("4radi-oqaaa-aaaan-qapwa-cai").await
+        );
 
         let response_12 = add_icsp_admin(
             "4radi-oqaaa-aaaan-qapwa-cai",
@@ -101,6 +107,27 @@ mod test_isp {
         )
         .await;
         println!("change icsp admin result:{:?}", response_13);
+
+        let top_up_args = BurnArgs {
+            canister_id: Principal::from_text("p2pki-xyaaa-aaaan-qatua-cai").unwrap(),
+            amount: 1_000_000_000_000 as u64 - 2_000_000_000 as u64,
+        };
+        let response_14 = top_up_icsp_with_xtc(top_up_args).await;
+        println!("topup icsp with XTC result:{:?}\n", response_14);
+
+        println!("icp balance:{:?}\n", get_icp_balance().await);
+
+        let response_15 = transfer_out_icp(
+            "3eee9b4671b8fde5a501288d74d21ee93042dc202104fa35051563ae35d24f2f",
+            5000000 as u64,
+        )
+        .await;
+        println!("transfer out icp result:{:?}\n", response_15);
+
+        println!(
+            "icsp cycle balance:{:?}\n",
+            get_cycle_balance("tawoh-5iaaa-aaaao-aalfq-cai").await
+        );
     }
 
     // return (icsp_name, icsp_canister_id)
@@ -116,8 +143,18 @@ mod test_isp {
         isp::get_isp_admins("identities/identity.pem").await
     }
 
-    async fn create_icsp(icsp_name: &str, icp_amount: u64) -> CreateICSPResult {
-        isp::create_icsp("identities/identity.pem", icsp_name, icp_amount).await
+    async fn create_icsp(
+        icsp_name: &str,
+        icp_to_create_amount: u64,
+        xtc_to_topup_amount: u64,
+    ) -> (CreateICSPResult, Option<BurnResult>) {
+        isp::create_icsp(
+            "identities/identity.pem",
+            icsp_name,
+            icp_to_create_amount,
+            xtc_to_topup_amount,
+        )
+        .await
     }
 
     async fn top_up_icsp(args: TopUpArgs) -> TopUpResult {
@@ -174,6 +211,22 @@ mod test_isp {
             new_admins_text,
         )
         .await
+    }
+
+    async fn top_up_icsp_with_xtc(args: BurnArgs) -> BurnResult {
+        isp::top_up_icsp_with_xtc("identities/identity.pem", args).await
+    }
+
+    async fn get_icp_balance() -> u64 {
+        isp::get_icp_balance("identities/identity.pem").await
+    }
+
+    async fn transfer_out_icp(to: &str, amount: u64) -> TransferResult {
+        isp::transfer_out_icp("identities/identity.pem", to, amount).await
+    }
+
+    async fn get_cycle_balance(icsp_canister_id_text: &str) -> Nat {
+        icsp::get_cycle_balance("identities/identity.pem", icsp_canister_id_text).await
     }
 }
 
@@ -286,5 +339,5 @@ mod test_isp_certified_log {
 
 #[tokio::main]
 async fn main() {
-    test_isp_certified_log::test().await;
+    test_isp::test().await
 }

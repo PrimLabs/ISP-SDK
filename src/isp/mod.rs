@@ -1,10 +1,11 @@
 mod isp_did;
+
 use candid::{CandidType, Decode, Encode, Nat};
 use garcon::Delay;
 use hex::{self};
 use ic_agent::agent::http_transport::ReqwestHttpReplicaV2Transport;
 use ic_agent::{ic_types::Principal, identity::Secp256k1Identity, Agent};
-pub use isp_did::{CreateICSPResult, Error, TopUpArgs, TopUpResult};
+pub use isp_did::{CreateICSPResult, Error, TopUpArgs, TopUpResult, TransferResult};
 use serde::Deserialize;
 
 static ISP_CANISTER_ID_TEXT: &'static str = "p2pki-xyaaa-aaaan-qatua-cai";
@@ -33,8 +34,7 @@ static ISP_CANISTER_ID_TEXT: &'static str = "p2pki-xyaaa-aaaan-qatua-cai";
 /// ```
 pub async fn get_user_icsps(pem_identity_path: &str) -> Vec<(String, Principal)> {
     let canister_id = Principal::from_text(ISP_CANISTER_ID_TEXT).unwrap();
-    let agent = build_agent(pem_identity_path);
-    let response_blob = agent
+    let response_blob = build_agent(pem_identity_path)
         .query(&canister_id, "getUserICSPs")
         .with_arg(Encode!().expect("encode error"))
         .call()
@@ -60,13 +60,12 @@ pub async fn get_user_icsps(pem_identity_path: &str) -> Vec<(String, Principal)>
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     println!("subAccount:{:?}\n", get_sub_account());
+///     println!("subAccount:{:?}\n", get_sub_account().await);
 /// }
 /// ```
 pub async fn get_sub_account(pem_identity_path: &str) -> String {
     let canister_id = Principal::from_text(ISP_CANISTER_ID_TEXT).unwrap();
-    let agent = build_agent(pem_identity_path);
-    let response_blob = agent
+    let response_blob = build_agent(pem_identity_path)
         .query(&canister_id, "getSubAccount")
         .with_arg(Encode!().expect("encode error"))
         .call()
@@ -74,6 +73,68 @@ pub async fn get_sub_account(pem_identity_path: &str) -> String {
         .expect("response error");
     let response = Decode!(&response_blob, Vec<u8>).unwrap();
     hex::encode(response)
+}
+
+/// Get the icp balance of user's subAccount of the isp
+///
+/// The balance is e8s
+///
+/// Example code :
+/// ``` no_run
+/// use isp_sdk::isp;
+///
+/// async fn get_icp_balance() -> u64 {
+///     isp::get_icp_balance("identities/identity.pem").await
+/// }
+///
+/// #[tokio::main]
+/// async fn main() {
+///     println!("icp balance:{:?}\n", get_icp_balance().await);
+/// }
+/// ```
+pub async fn get_icp_balance(pem_identity_path: &str) -> u64 {
+    let canister_id = Principal::from_text(ISP_CANISTER_ID_TEXT).unwrap();
+    let response_blob = build_agent(pem_identity_path)
+        .update(&canister_id, "getICPBalance")
+        .with_arg(Encode!().expect("encode error"))
+        .call_and_wait(get_waiter())
+        .await
+        .expect("response error");
+    let response = Decode!(&response_blob, u64).unwrap();
+    response
+}
+
+/// Transfer out icp from user's subAccount of the isp
+///
+/// The amount is e8s
+///
+/// Example code :
+/// ``` no_run
+/// use isp_sdk::isp::{self, TransferResult};
+///
+/// pub async fn transfer_out_icp(to: &str, amount: u64) -> TransferResult {
+///     isp::transfer_out_icp("identities/identity.pem", to, amount).await
+/// }
+///
+/// #[tokio::main]
+/// async fn main() {
+///     let response = transfer_out_icp(
+///         "3eee9b4671b8fde5a501288d74d21ee93042dc202104fa35051563ae35d24f2f",
+///         2_000_000 as u64,
+///     ).await;
+///     println!("transfer out icp result:{:?}\n", response);
+/// }
+/// ```
+pub async fn transfer_out_icp(pem_identity_path: &str, to: &str, amount: u64) -> TransferResult {
+    let canister_id = Principal::from_text(ISP_CANISTER_ID_TEXT).unwrap();
+    let response_blob = build_agent(pem_identity_path)
+        .update(&canister_id, "transferOutICP")
+        .with_arg(Encode!(&(hex::decode(to).unwrap()), &amount).expect("encode error"))
+        .call_and_wait(get_waiter())
+        .await
+        .expect("response error");
+    let response = Decode!(&response_blob, TransferResult).unwrap();
+    response
 }
 
 /// Get admins of isp
@@ -98,8 +159,7 @@ pub async fn get_sub_account(pem_identity_path: &str) -> String {
 /// ```
 pub async fn get_isp_admins(pem_identity_path: &str) -> Vec<Principal> {
     let canister_id = Principal::from_text(ISP_CANISTER_ID_TEXT).unwrap();
-    let agent = build_agent(pem_identity_path);
-    let response_blob = agent
+    let response_blob = build_agent(pem_identity_path)
         .query(&canister_id, "getAdmins")
         .with_arg(Encode!().expect("encode error"))
         .call()
@@ -109,44 +169,89 @@ pub async fn get_isp_admins(pem_identity_path: &str) -> Vec<Principal> {
     response
 }
 
-/// Create a icsp
+/// Create a icsp and init
 ///
-/// You must ensure that your subAccount has sufficient icp
+/// You must ensure that your subAccount has sufficient icp and [XTC](https://github.com/Psychedelic/dank/tree/main/xtc)
 ///
-/// Notice: the icp_amount is e8s.
+/// Notice:
 ///
+/// The icp_amount is e8s.
 /// 1 icp should be 100_000_000
+///
+/// The XTC is e12s.
+/// 1 T XTC(Cycles) should be 1_000_000_000_000
 ///
 /// Example code :
 /// ``` no_run
-/// use isp_sdk::isp::{self, CreateICSPResult};
+/// use isp_sdk::isp::{self, CreateICSPResult, BurnResult};
 ///
-/// async fn create_icsp(icsp_name: &str, icp_amount: u64) -> CreateICSPResult {
-///     isp::create_icsp("identities/identity.pem", icsp_name, icp_amount).await
+/// async fn create_icsp(icsp_name: &str, icp_to_create_amount: u64, xtc_to_topup_amount: u64,) -> (CreateICSPResult, Option<BurnResult>) {
+///     isp::create_icsp("identities/identity.pem", icsp_name, icp_to_create_amount, xtc_to_topup_amount).await
 /// }
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let response = create_icsp("icsp-1", 100_000_000 as u64).await;
+///     let response = create_icsp(
+///         "icsp-1",
+///         20_000_000 as u64,
+///         10_000_000_000_000 as u64 - 2_000_000_000 as u64,
+///     ).await;
 ///     println!("create icsp result:{:?}\n", response);
 /// }
 /// ```
 pub async fn create_icsp(
     pem_identity_path: &str,
     icsp_name: &str,
-    icp_amount: u64,
-) -> CreateICSPResult {
-    let canister_id = Principal::from_text(ISP_CANISTER_ID_TEXT).unwrap();
+    icp_to_create_amount: u64,
+    xtc_to_topup_amount: u64,
+) -> (CreateICSPResult, Option<BurnResult>) {
+    // create a icsp canister
+    let isp_canister_id = Principal::from_text(ISP_CANISTER_ID_TEXT).unwrap();
     let agent = build_agent(pem_identity_path);
-    let waiter = get_waiter();
     let response_blob = agent
-        .update(&canister_id, "createICSP")
-        .with_arg(Encode!(&icsp_name, &icp_amount).expect("encode error"))
-        .call_and_wait(waiter)
+        .update(&isp_canister_id, "createICSP")
+        .with_arg(Encode!(&icsp_name, &icp_to_create_amount).expect("encode error"))
+        .call_and_wait(get_waiter())
         .await
         .expect("response error");
     let response = Decode!(&response_blob, CreateICSPResult).unwrap();
-    response
+    match response {
+        CreateICSPResult::ok(icsp_canister_id) => {
+            // use XTC to topup icsp
+            let top_up_response = top_up_icsp_with_xtc(
+                pem_identity_path,
+                BurnArgs {
+                    canister_id: icsp_canister_id,
+                    amount: xtc_to_topup_amount,
+                },
+            )
+            .await;
+            match top_up_response {
+                BurnResult::Ok(block_index) => {
+                    // init icsp
+                    let init_response = agent
+                        .update(&icsp_canister_id, "init")
+                        .with_arg(Encode!().expect("encode error"))
+                        .call_and_wait(get_waiter())
+                        .await
+                        .expect("response error");
+                    return (
+                        CreateICSPResult::ok(icsp_canister_id),
+                        Some(BurnResult::Ok(block_index)),
+                    );
+                }
+                BurnResult::Err(burn_err) => {
+                    return (
+                        CreateICSPResult::ok(icsp_canister_id),
+                        Some(BurnResult::Err(burn_err)),
+                    );
+                }
+            }
+        }
+        CreateICSPResult::err(create_err) => {
+            return (CreateICSPResult::err(create_err), None);
+        }
+    }
 }
 
 /// Transform icp to cycles and topup tp icsp
@@ -171,15 +276,64 @@ pub async fn create_icsp(
 /// }
 pub async fn top_up_icsp(pem_identity_path: &str, args: TopUpArgs) -> TopUpResult {
     let canister_id = Principal::from_text(ISP_CANISTER_ID_TEXT).unwrap();
-    let agent = build_agent(pem_identity_path);
-    let waiter = get_waiter();
-    let response_blob = agent
+    let response_blob = build_agent(pem_identity_path)
         .update(&canister_id, "topUpICSP")
         .with_arg(Encode!(&args).expect("encode error"))
-        .call_and_wait(waiter)
+        .call_and_wait(get_waiter())
         .await
         .expect("response error");
     let response = Decode!(&response_blob, TopUpResult).unwrap();
+    response
+}
+
+#[derive(CandidType, Deserialize, Debug)]
+pub struct BurnArgs {
+    pub canister_id: Principal,
+    pub amount: u64,
+}
+
+#[derive(CandidType, Deserialize, Debug)]
+pub enum BurnResult {
+    Ok(u64),
+    Err(BurnError),
+}
+
+#[derive(CandidType, Deserialize, Debug)]
+pub enum BurnError {
+    InsufficientBalance,
+    InvalidTokenContract,
+    NotSufficientLiquidity,
+}
+
+/// Use [XTC](https://github.com/Psychedelic/dank/tree/main/xtc) to topup icsp
+///
+/// Example code :
+/// ``` no_run
+/// use ic_agent::ic_types::Principal;
+/// use isp_sdk::isp::{self, BurnArgs, BurnResult};
+///
+/// async fn top_up_icsp_with_xtc(args: BurnArgs) -> BurnResult {
+///     isp::top_up_icsp_with_xtc("identities/identity.pem", args).await
+/// }
+///
+/// #[tokio::main]
+/// async fn main() {
+///     let top_up_args = BurnArgs {
+///         canister_id: Principal::from_text("p2pki-xyaaa-aaaan-qatua-cai").unwrap(),
+///         amount: 1_000_000_000_000 as u64 - 2_000_000_000 as u64,
+///     };
+///     let response_14 = top_up_icsp_with_xtc(top_up_args).await;
+///     println!("topup icsp with XTC result:{:?}\n", response_14);
+/// }
+pub async fn top_up_icsp_with_xtc(pem_identity_path: &str, args: BurnArgs) -> BurnResult {
+    let canister_id = Principal::from_text("aanaa-xaaaa-aaaah-aaeiq-cai").unwrap();
+    let response_blob = build_agent(pem_identity_path)
+        .update(&canister_id, "burn")
+        .with_arg(Encode!(&args).expect("encode error"))
+        .call_and_wait(get_waiter())
+        .await
+        .expect("response error");
+    let response = Decode!(&response_blob, BurnResult).unwrap();
     response
 }
 
