@@ -46,9 +46,7 @@ pub async fn get_user_icsps(pem_identity_path: &str) -> Vec<(String, Principal)>
 
 /// Get user's subAccount of the isp
 ///
-/// You should transfer icp to this subAccount in order to create icsp
-///
-/// The icp is transformed into cycles which are topuped to icsp
+/// You should transfer icp to this subAccount in order to create icsp canister
 ///
 /// Example code :
 /// ``` no_run
@@ -118,11 +116,14 @@ pub async fn get_icp_balance(pem_identity_path: &str) -> u64 {
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let response = transfer_out_icp(
-///         "3eee9b4671b8fde5a501288d74d21ee93042dc202104fa35051563ae35d24f2f",
-///         2_000_000 as u64,
-///     ).await;
-///     println!("transfer out icp result:{:?}\n", response);
+///     println!(
+///         "transfer out icp result:{:?}\n",
+///         transfer_out_icp(
+///             "3eee9b4671b8fde5a501288d74d21ee93042dc202104fa35051563ae35d24f2f",
+///             5000000 as u64,
+///         )
+///         .await
+///     );
 /// }
 /// ```
 pub async fn transfer_out_icp(pem_identity_path: &str, to: &str, amount: u64) -> TransferResult {
@@ -150,9 +151,8 @@ pub async fn transfer_out_icp(pem_identity_path: &str, to: &str, amount: u64) ->
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let response = get_isp_admins().await;
 ///     println!("isp admins:");
-///     for i in &response {
+///     for i in &get_isp_admins().await {
 ///         println!("{:?}", Principal::to_text(i));
 ///     }
 /// }
@@ -169,9 +169,11 @@ pub async fn get_isp_admins(pem_identity_path: &str) -> Vec<Principal> {
     response
 }
 
-/// Create a icsp and init
+/// Use icp to create a icsp canister and use the [XTC](https://github.com/Psychedelic/dank/tree/main/xtc) to top_up it
 ///
-/// You must ensure that your subAccount has sufficient icp and [XTC](https://github.com/Psychedelic/dank/tree/main/xtc)
+/// You must ensure that your subAccount has sufficient icp
+///
+/// And your pem Account have sufficient [XTC](https://github.com/Psychedelic/dank/tree/main/xtc)
 ///
 /// Notice:
 ///
@@ -196,7 +198,15 @@ pub async fn get_isp_admins(pem_identity_path: &str) -> Vec<Principal> {
 ///         20_000_000 as u64,
 ///         10_000_000_000_000 as u64 - 2_000_000_000 as u64,
 ///     ).await;
-///     println!("create icsp result:{:?}\n", response);
+///     match response.0 {
+///         CreateICSPResult::ok(canister_id) => {
+///             println!("create icsp success: {:?}", canister_id.to_text());
+///             println!("use XTC topup result: {:?}", response.1.unwrap());
+///         }
+///         CreateICSPResult::err(error) => {
+///             println!("create icsp error: {:?}", error);
+///         }
+///     }
 /// }
 /// ```
 pub async fn create_icsp(
@@ -254,7 +264,7 @@ pub async fn create_icsp(
     }
 }
 
-/// Transform icp to cycles and topup tp icsp
+/// Transform icp to cycles and top_up tp icsp
 ///
 /// Example code :
 /// ``` no_run
@@ -267,12 +277,14 @@ pub async fn create_icsp(
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let top_up_args = TopUpArgs {
-///         icsp_canisterId: Principal::from_text("xk2my-yqaaa-aaaal-abdwa-cai").unwrap(),
-///         icp_amount: 5_000_000 as u64,
-///     };
-///     let response = top_up_icsp(top_up_args).await;
-///     println!("topup icsp result:{:?}\n", response);
+///     println!(
+///         "topup icsp result:{:?}\n",
+///         top_up_icsp(TopUpArgs {
+///             icsp_canisterId: Principal::from_text("xk2my-yqaaa-aaaal-abdwa-cai").unwrap(),
+///             icp_amount: 5_000_000 as u64,
+///         })
+///         .await
+///     );
 /// }
 pub async fn top_up_icsp(pem_identity_path: &str, args: TopUpArgs) -> TopUpResult {
     let canister_id = Principal::from_text(ISP_CANISTER_ID_TEXT).unwrap();
@@ -305,7 +317,9 @@ pub enum BurnError {
     NotSufficientLiquidity,
 }
 
-/// Use [XTC](https://github.com/Psychedelic/dank/tree/main/xtc) to topup icsp
+/// Use [XTC](https://github.com/Psychedelic/dank/tree/main/xtc) to top_up icsp
+///
+/// You must ensure you pem Account have sufficient [XTC](https://github.com/Psychedelic/dank/tree/main/xtc)
 ///
 /// Example code :
 /// ``` no_run
@@ -318,12 +332,14 @@ pub enum BurnError {
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let top_up_args = BurnArgs {
-///         canister_id: Principal::from_text("p2pki-xyaaa-aaaan-qatua-cai").unwrap(),
-///         amount: 1_000_000_000_000 as u64 - 2_000_000_000 as u64,
-///     };
-///     let response_14 = top_up_icsp_with_xtc(top_up_args).await;
-///     println!("topup icsp with XTC result:{:?}\n", response_14);
+///     println!(
+///         "topup icsp with XTC result:{:?}\n",
+///         top_up_icsp_with_xtc(BurnArgs {
+///             canister_id: Principal::from_text("hf34l-eyaaa-aaaan-qav5q-cai").unwrap(),
+///             amount: 1_000_000_000_000 as u64 - 2_000_000_000 as u64,
+///         })
+///         .await
+///     );
 /// }
 pub async fn top_up_icsp_with_xtc(pem_identity_path: &str, args: BurnArgs) -> BurnResult {
     let canister_id = Principal::from_text("aanaa-xaaaa-aaaah-aaeiq-cai").unwrap();

@@ -14,7 +14,7 @@ pub struct Buckets {
     pub live_buckets: Vec<LiveBucketExt>,
 }
 
-#[derive(CandidType, Deserialize)]
+#[derive(CandidType, Deserialize, Debug)]
 pub struct StoreArgs {
     pub key: String,
     pub value: Vec<u8>,
@@ -25,6 +25,20 @@ pub struct StoreArgs {
     pub index: Nat,
 }
 
+#[derive(CandidType, Deserialize, Debug)]
+struct OtherFile {
+    file_location: FileLocation,
+    file_key: String,
+    file_url: String,
+    file_type: String,
+}
+
+#[derive(CandidType, Deserialize, Debug)]
+enum FileLocation {
+    IPFS,
+    Arweave,
+}
+
 type icsp = candid::Service;
 
 struct SERVICE(Principal);
@@ -33,16 +47,40 @@ impl SERVICE {
         ic_cdk::call(self.0, "getCycleBalance", ()).await
     }
 
-    pub async fn add_admin(&self, new_admin: Principal) -> CallResult<(bool,)> {
-        ic_cdk::call(self.0, "addAdmin", (new_admin,)).await
+    pub async fn get_all_ic_file_key(&self) -> CallResult<(Vec<String>,)> {
+        ic_cdk::call(self.0, "getAllIcFileKey", ()).await
     }
 
-    pub async fn change_admin(&self, new_admin: Vec<Principal>) -> CallResult<(bool,)> {
-        ic_cdk::call(self.0, "changeAdmin", (new_admin,)).await
+    pub async fn get_all_ipfs_file_key(&self) -> CallResult<(Vec<String>,)> {
+        ic_cdk::call(self.0, "getAllIpfsFileKey", ()).await
     }
 
-    pub async fn change_bucket_admin(&self) -> CallResult<(bool,)> {
-        ic_cdk::call(self.0, "change_bucket_admin", ()).await
+    pub async fn get_all_arweave_file_key(&self) -> CallResult<(Vec<String>,)> {
+        ic_cdk::call(self.0, "getAllArFileKey", ()).await
+    }
+
+    pub async fn record_file(&self, other_file: OtherFile) -> CallResult<()> {
+        ic_cdk::call(self.0, "recordFile", (other_file,)).await
+    }
+
+    pub async fn init(&self) -> CallResult<(LiveBucketExt,)> {
+        ic_cdk::call(self.0, "init", ()).await
+    }
+
+    pub async fn get_other_file(
+        &self,
+        file_key: String,
+        file_location: FileLocation,
+    ) -> CallResult<(Option<OtherFile>,)> {
+        ic_cdk::call(self.0, "getOtherFile", (file_key, file_location)).await
+    }
+
+    pub async fn add_admin(&self, newAdmin: Principal) -> CallResult<()> {
+        ic_cdk::call(self.0, "addAdmin", (newAdmin,)).await
+    }
+
+    pub async fn delete_admin(&self, oldAdmin: Principal) -> CallResult<()> {
+        ic_cdk::call(self.0, "deleteAdmin", (oldAdmin,)).await
     }
 
     pub async fn get_admins(&self) -> CallResult<(Vec<Principal>,)> {

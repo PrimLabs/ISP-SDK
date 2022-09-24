@@ -4,6 +4,8 @@ mod test_isp {
     use icsp::Buckets;
     use isp::{BurnArgs, BurnResult, CreateICSPResult, TopUpArgs, TopUpResult, TransferResult};
     use isp_sdk::{icsp, isp};
+    use std::fs::OpenOptions;
+    use std::io::Write;
 
     pub async fn test() {
         let response_1 = get_user_icsps().await;
@@ -16,39 +18,59 @@ mod test_isp {
 
         println!("SubAccount:{:?}\n", get_sub_account().await);
 
-        let response_3 = get_isp_admins().await;
+        println!("icp balance:{:?}\n", get_icp_balance().await);
+
+        println!(
+            "transfer out icp result:{:?}\n",
+            transfer_out_icp(
+                "3eee9b4671b8fde5a501288d74d21ee93042dc202104fa35051563ae35d24f2f",
+                5000000 as u64,
+            )
+            .await
+        );
+
         println!("isp admins:");
-        for i in &response_3 {
+        for i in &get_isp_admins().await {
             println!("{:?}", Principal::to_text(i));
         }
-        println!("\n");
 
         let response_4 = create_icsp(
             "icsp-1",
             15_000_000 as u64,
-            10_000_000_000_000 as u64 - 2_000_000_000 as u64,
+            5_000_000_000_000 as u64 - 2_000_000_000 as u64,
         )
         .await;
-        println!("create icsp result:{:?}\n", response_4);
-
-        let top_up_args = TopUpArgs {
-            icsp_canisterId: Principal::from_text("xk2my-yqaaa-aaaal-abdwa-cai").unwrap(),
-            icp_amount: 5_000_000 as u64,
-        };
-        let response_5 = top_up_icsp(top_up_args).await;
-        println!("topup icsp result:{:?}\n", response_5);
-
-        let response_6 = get_bucket_of_file(
-            "4radi-oqaaa-aaaan-qapwa-cai",
-            "219ae72471e1857546a9311079c3c02750b15c9e29179498658ba7b5324dd2a5",
-        )
-        .await;
-        match response_6 {
-            Some(response) => println!("the file in bucekt:{:?}\n", response.to_text()),
-            None => println!("no bucket have this file"),
+        match response_4.0 {
+            CreateICSPResult::ok(canister_id) => {
+                println!("create icsp success: {:?}", canister_id.to_text());
+                println!("use XTC topup result: {:?}", response_4.1.unwrap());
+            }
+            CreateICSPResult::err(error) => {
+                println!("create icsp error: {:?}", error);
+            }
         }
 
-        let response_7 = get_icsp_buckets("tawoh-5iaaa-aaaao-aalfq-cai").await;
+        println!(
+            "topup icsp result:{:?}\n",
+            top_up_icsp(TopUpArgs {
+                icsp_canisterId: Principal::from_text("xk2my-yqaaa-aaaal-abdwa-cai").unwrap(),
+                icp_amount: 5_000_000 as u64,
+            })
+            .await
+        );
+
+        println!(
+            "the file in bucekt:{:?}\n",
+            get_bucket_of_file(
+                "4radi-oqaaa-aaaan-qapwa-cai",
+                "14d37b8971e5c73a523de39e0682ba0c08df3a503c49f4f976fe282bc60abfef",
+            )
+            .await
+            .expect("no bucket have this file")
+            .to_text()
+        );
+
+        let response_7 = get_icsp_buckets("4radi-oqaaa-aaaan-qapwa-cai").await;
         match response_7 {
             Some(response) => {
                 println!("old buckets:");
@@ -67,28 +89,37 @@ mod test_isp {
             None => println!("icsp do not have buckets"),
         }
 
-        let response_8 = get_icsp_admins("4radi-oqaaa-aaaan-qapwa-cai").await;
         println!("icsp admins:");
-        for i in &response_8 {
+        for i in &get_icsp_admins("4radi-oqaaa-aaaan-qapwa-cai").await {
             println!("{:?}", i.to_text());
         }
 
-        // url format : icsp_canister_id.raw.ic0.app/file_key
-        let response_9 = store_file("source/", "4radi-oqaaa-aaaan-qapwa-cai", true).await;
-        for i in &response_9 {
+        // url format : icsp_canister_id.raw.ic0.app/'option location'/file_key
+        // icsp_canister_id.raw.ic0.app/ic/file_key
+        // icsp_canister_id.raw.ic0.app/ipfs/file_key
+        // icsp_canister_id.raw.ic0.app/ar/file_key
+        for i in &store_files("source/", "4radi-oqaaa-aaaan-qapwa-cai", true).await {
             println!("file_name:{:?},file_key:{:?}", i.0, i.1);
         }
 
+        // url format : icsp_canister_id.raw.ic0.app/'option location'/file_key
+        // icsp_canister_id.raw.ic0.app/ic/file_key
+        // icsp_canister_id.raw.ic0.app/ipfs/file_key
+        // icsp_canister_id.raw.ic0.app/ar/file_key
+        let respoonse_8 =
+            store_file("source/bitcoin.pdf", "4radi-oqaaa-aaaan-qapwa-cai", true).await;
+        println!("file_name:{:?},file_key:{:?}", respoonse_8.0, respoonse_8.1);
+
         let response_10 = get_file(
             "4radi-oqaaa-aaaan-qapwa-cai",
-            "efb8933d26461d4a00bd28824e64d52ff11ebaa6a3584b2478c7f8c0e89b3c8c",
+            "3166112af0dcc940f8e7f2199a4200cfb5e2efb40796391201b8fe9e4ff7ca84",
         )
         .await;
-        println!("file:{:?},file_type:{:?}", response_10.0, response_10.1);
-
+        let mut file = std::fs::File::create("output/bitcoin.pdf").expect("create failed");
+        file.write_all(&response_10.0).expect("write failed");
         println!(
-            "change bucket admin result:{:?}",
-            change_bucket_admin("4radi-oqaaa-aaaan-qapwa-cai").await
+            "file out put at folder output/ , file_type:{:?}",
+            response_10.1
         );
 
         let response_12 = add_icsp_admin(
@@ -96,37 +127,24 @@ mod test_isp {
             "bxgws-37y5d-tgmpr-hekbp-y3uxo-yicgs-fo7p3-ccnta-kidrz-74onh-pae",
         )
         .await;
-        println!("add icsp admin result:{:?}", response_12);
 
-        let response_13 = change_icsp_admin(
-            "4radi-oqaaa-aaaan-qapwa-cai",
-            vec![
-                "5gdgj-5vp3h-a4vts-zlfdz-oqoan-t6gbc-nh7eo-oj33d-pgesh-wcvb4-sqe",
-                "rqtm7-blweq-njir5-hqz4o-lmz7w-zap72-64cug-eqe7x-aryqg-bvwib-zqe",
-            ],
-        )
-        .await;
-        println!("change icsp admin result:{:?}", response_13);
-
-        let top_up_args = BurnArgs {
-            canister_id: Principal::from_text("p2pki-xyaaa-aaaan-qatua-cai").unwrap(),
-            amount: 1_000_000_000_000 as u64 - 2_000_000_000 as u64,
-        };
-        let response_14 = top_up_icsp_with_xtc(top_up_args).await;
-        println!("topup icsp with XTC result:{:?}\n", response_14);
-
-        println!("icp balance:{:?}\n", get_icp_balance().await);
-
-        let response_15 = transfer_out_icp(
-            "3eee9b4671b8fde5a501288d74d21ee93042dc202104fa35051563ae35d24f2f",
-            5000000 as u64,
-        )
-        .await;
-        println!("transfer out icp result:{:?}\n", response_15);
+        println!(
+            "topup icsp with XTC result:{:?}\n",
+            top_up_icsp_with_xtc(BurnArgs {
+                canister_id: Principal::from_text("hf34l-eyaaa-aaaan-qav5q-cai").unwrap(),
+                amount: 1_000_000_000_000 as u64 - 2_000_000_000 as u64,
+            })
+            .await
+        );
 
         println!(
             "icsp cycle balance:{:?}\n",
-            get_cycle_balance("tawoh-5iaaa-aaaao-aalfq-cai").await
+            get_cycle_balance("4radi-oqaaa-aaaan-qapwa-cai").await
+        );
+
+        println!(
+            "get all ic file key result: {:?}",
+            get_all_ic_file_key("identities/identity.pem", "4radi-oqaaa-aaaan-qapwa-cai").await
         );
     }
 
@@ -173,14 +191,28 @@ mod test_isp {
         icsp::get_icsp_admins("identities/identity.pem", icsp_canister_id_text).await
     }
 
-    async fn store_file(
+    async fn store_files(
         folder_path: &str,
         icsp_canister_id_text: &str,
         is_http_open: bool,
     ) -> Vec<(String, String)> {
-        icsp::store_file(
+        icsp::store_files(
             "identities/identity.pem",
             folder_path,
+            icsp_canister_id_text,
+            is_http_open,
+        )
+        .await
+    }
+
+    async fn store_file(
+        file_path_str: &str,
+        icsp_canister_id_text: &str,
+        is_http_open: bool,
+    ) -> (String, String) {
+        icsp::store_file(
+            "identities/identity.pem",
+            file_path_str,
             icsp_canister_id_text,
             is_http_open,
         )
@@ -191,11 +223,7 @@ mod test_isp {
         icsp::get_file("identities/identity.pem", icsp_canister_id_text, file_key).await
     }
 
-    async fn change_bucket_admin(icsp_canister_id_text: &str) -> bool {
-        icsp::change_bucket_admin("identities/identity.pem", icsp_canister_id_text).await
-    }
-
-    async fn add_icsp_admin(icsp_canister_id_text: &str, new_admin_text: &str) -> bool {
+    async fn add_icsp_admin(icsp_canister_id_text: &str, new_admin_text: &str) {
         icsp::add_icsp_admin(
             "identities/identity.pem",
             icsp_canister_id_text,
@@ -204,11 +232,11 @@ mod test_isp {
         .await
     }
 
-    async fn change_icsp_admin(icsp_canister_id_text: &str, new_admins_text: Vec<&str>) -> bool {
-        icsp::change_icsp_admin(
+    async fn delete_icsp_admin(icsp_canister_id_text: &str, old_admin_text: &str) {
+        icsp::delete_icsp_admin(
             "identities/identity.pem",
             icsp_canister_id_text,
-            new_admins_text,
+            old_admin_text,
         )
         .await
     }
@@ -227,6 +255,13 @@ mod test_isp {
 
     async fn get_cycle_balance(icsp_canister_id_text: &str) -> Nat {
         icsp::get_cycle_balance("identities/identity.pem", icsp_canister_id_text).await
+    }
+
+    async fn get_all_ic_file_key(
+        pem_identity_path: &str,
+        icsp_canister_id_text: &str,
+    ) -> Vec<String> {
+        icsp::get_all_ic_file_key("identities/identity.pem", icsp_canister_id_text).await
     }
 }
 
