@@ -48,6 +48,43 @@ pub async fn get_all_ic_file_key(
     response
 }
 
+/// Get file's information
+///
+/// Example code :
+/// ``` no_run
+/// use candid::Nat;
+/// use isp_sdk::icsp::{self, FileBufExt};
+///
+/// async fn get_file_info(
+///     pem_identity_path: &str,
+///     icsp_canister_id_text: &str,
+///     file_key: String,
+/// ) -> Option<FileBufExt> {
+///     icsp::get_file_info("identities/identity.pem", icsp_canister_id_text, file_key).await
+/// }
+///
+/// #[tokio::main]
+/// async fn main() {
+///     println!("get file info result:");
+///     match get_file_info(
+///         "identities/identity.pem",
+///         "5ekwd-fyaaa-aaaan-qaxlq-cai",
+///         "14d37b8971e5c73a523de39e0682ba0c08df3a503c49f4f976fe282bc60abfef".to_string(),
+///     )
+///     .await
+///     {
+///         None => println!("do not have this file"),
+///         Some(file_info) => {
+///             println!("bucket_id: {:?}", file_info.bucket_id.to_text());
+///             println!("total_index: {:?}", file_info.total_index);
+///             println!("received chunk_number: {:?}", file_info.received);
+///             println!("wrote_page: {:?}", file_info.wrote_page);
+///             println!("file type: {:?}", file_info.file_type);
+///             println!("is_http_open: {:?}", file_info.is_http_open);
+///             println!("total_size: {:?}", file_info.total_size);
+///         }
+///     }
+/// }
 pub async fn get_file_info(
     pem_identity_path: &str,
     icsp_canister_id_text: &str,

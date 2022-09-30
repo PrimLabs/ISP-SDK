@@ -7,143 +7,143 @@ use std::fs::OpenOptions;
 use std::io::Write;
 
 pub async fn test() {
-    // let response_1 = get_user_icsps().await;
-    // for i in &response_1 {
-    //     println!("icsp_name:{:?},icsp_canister_id:{:?}", i.0, i.1.to_text());
-    // }
-    // if response_1.is_empty() {
-    //     println!("user do not have icsp\n");
-    // }
-    //
-    // println!("SubAccount:{:?}\n", get_sub_account().await);
-    //
-    // println!("icp balance:{:?}\n", get_icp_balance().await);
-    //
-    // println!(
-    //     "transfer out icp result:{:?}\n",
-    //     transfer_out_icp(
-    //         "3eee9b4671b8fde5a501288d74d21ee93042dc202104fa35051563ae35d24f2f",
-    //         5000000 as u64,
-    //     )
-    //     .await
-    // );
-    //
-    // println!("isp admins:");
-    // for i in &get_isp_admins().await {
-    //     println!("{:?}", Principal::to_text(i));
-    // }
-    //
-    // let response_4 = create_icsp(
-    //     "icsp-1",
-    //     15_000_000 as u64,
-    //     5_000_000_000_000 as u64 - 2_000_000_000 as u64,
-    // )
-    // .await;
-    // match response_4.0 {
-    //     CreateICSPResult::ok(canister_id) => {
-    //         println!("create icsp success: {:?}", canister_id.to_text());
-    //         println!("use XTC topup result: {:?}", response_4.1.unwrap());
-    //     }
-    //     CreateICSPResult::err(error) => {
-    //         println!("create icsp error: {:?}", error);
-    //     }
-    // }
-    //
-    // println!(
-    //     "topup icsp result:{:?}\n",
-    //     top_up_icsp(TopUpArgs {
-    //         icsp_canisterId: Principal::from_text("xk2my-yqaaa-aaaal-abdwa-cai").unwrap(),
-    //         icp_amount: 5_000_000 as u64,
-    //     })
-    //     .await
-    // );
-    //
-    // println!(
-    //     "the file in bucekt:{:?}\n",
-    //     get_bucket_of_file(
-    //         "4radi-oqaaa-aaaan-qapwa-cai",
-    //         "14d37b8971e5c73a523de39e0682ba0c08df3a503c49f4f976fe282bc60abfef",
-    //     )
-    //     .await
-    //     .expect("no bucket have this file")
-    //     .to_text()
-    // );
+    let response_1 = get_user_icsps().await;
+    for i in &response_1 {
+        println!("icsp_name:{:?},icsp_canister_id:{:?}", i.0, i.1.to_text());
+    }
+    if response_1.is_empty() {
+        println!("user do not have icsp\n");
+    }
 
-    // let response_7 = get_icsp_buckets("5ekwd-fyaaa-aaaan-qaxlq-cai").await;
-    // match response_7 {
-    //     Some(response) => {
-    //         println!("old buckets:");
-    //         for i in &response.old_buckets {
-    //             println!("{:?}", i.to_text());
-    //         }
-    //         println!("Live Buckets:");
-    //         for i in &response.live_buckets {
-    //             println!(
-    //                 "canister_id:{:?}, used_memory:{:?}",
-    //                 i.canister_id.to_text(),
-    //                 i.used_memory,
-    //             );
-    //         }
-    //     }
-    //     None => println!("icsp do not have buckets"),
-    // }
+    println!("SubAccount:{:?}\n", get_sub_account().await);
 
-    // println!("icsp admins:");
-    // for i in &get_icsp_admins("4radi-oqaaa-aaaan-qapwa-cai").await {
-    //     println!("{:?}", i.to_text());
-    // }
-    //
-    // // url format : icsp_canister_id.raw.ic0.app/'option location'/file_key
-    // // icsp_canister_id.raw.ic0.app/ic/file_key
-    // // icsp_canister_id.raw.ic0.app/ipfs/file_key
-    // // icsp_canister_id.raw.ic0.app/ar/file_key
-    // for i in &store_files("source/", "4radi-oqaaa-aaaan-qapwa-cai", true).await {
-    //     println!("file_name:{:?},file_key:{:?}", i.0, i.1);
-    // }
+    println!("icp balance:{:?}\n", get_icp_balance().await);
 
-    // // url format : icsp_canister_id.raw.ic0.app/'option location'/file_key
-    // // icsp_canister_id.raw.ic0.app/ic/file_key
-    // // icsp_canister_id.raw.ic0.app/ipfs/file_key
-    // // icsp_canister_id.raw.ic0.app/ar/file_key
-    // let respoonse_8 = store_file("source/bitcoin.pdf", "5ekwd-fyaaa-aaaan-qaxlq-cai", true).await;
-    // println!("file_name:{:?},file_key:{:?}", respoonse_8.0, respoonse_8.1);
+    println!(
+        "transfer out icp result:{:?}\n",
+        transfer_out_icp(
+            "3eee9b4671b8fde5a501288d74d21ee93042dc202104fa35051563ae35d24f2f",
+            5000000 as u64,
+        )
+        .await
+    );
 
-    // let response_10 = get_file(
-    //     "4radi-oqaaa-aaaan-qapwa-cai",
-    //     "3166112af0dcc940f8e7f2199a4200cfb5e2efb40796391201b8fe9e4ff7ca84",
-    // )
-    // .await;
-    // let mut file = std::fs::File::create("output/bitcoin.pdf").expect("create failed");
-    // file.write_all(&response_10.0).expect("write failed");
-    // println!(
-    //     "file out put at folder output/ , file_type:{:?}",
-    //     response_10.1
-    // );
+    println!("isp admins:");
+    for i in &get_isp_admins().await {
+        println!("{:?}", Principal::to_text(i));
+    }
 
-    // let response_12 = add_icsp_admin(
-    //     "4radi-oqaaa-aaaan-qapwa-cai",
-    //     "bxgws-37y5d-tgmpr-hekbp-y3uxo-yicgs-fo7p3-ccnta-kidrz-74onh-pae",
-    // )
-    // .await;
-    //
-    // println!(
-    //     "topup icsp with XTC result:{:?}\n",
-    //     top_up_icsp_with_xtc(BurnArgs {
-    //         canister_id: Principal::from_text("hf34l-eyaaa-aaaan-qav5q-cai").unwrap(),
-    //         amount: 1_000_000_000_000 as u64 - 2_000_000_000 as u64,
-    //     })
-    //     .await
-    // );
-    //
-    // println!(
-    //     "icsp cycle balance:{:?}\n",
-    //     get_cycle_balance("4radi-oqaaa-aaaan-qapwa-cai").await
-    // );
-    //
-    // println!(
-    //     "get all ic file key result: {:?}",
-    //     get_all_ic_file_key("identities/identity.pem", "4radi-oqaaa-aaaan-qapwa-cai").await
-    // );
+    let response_4 = create_icsp(
+        "icsp-1",
+        15_000_000 as u64,
+        5_000_000_000_000 as u64 - 2_000_000_000 as u64,
+    )
+    .await;
+    match response_4.0 {
+        CreateICSPResult::ok(canister_id) => {
+            println!("create icsp success: {:?}", canister_id.to_text());
+            println!("use XTC topup result: {:?}", response_4.1.unwrap());
+        }
+        CreateICSPResult::err(error) => {
+            println!("create icsp error: {:?}", error);
+        }
+    }
+
+    println!(
+        "topup icsp result:{:?}\n",
+        top_up_icsp(TopUpArgs {
+            icsp_canisterId: Principal::from_text("xk2my-yqaaa-aaaal-abdwa-cai").unwrap(),
+            icp_amount: 5_000_000 as u64,
+        })
+        .await
+    );
+
+    println!(
+        "the file in bucekt:{:?}\n",
+        get_bucket_of_file(
+            "4radi-oqaaa-aaaan-qapwa-cai",
+            "14d37b8971e5c73a523de39e0682ba0c08df3a503c49f4f976fe282bc60abfef",
+        )
+        .await
+        .expect("no bucket have this file")
+        .to_text()
+    );
+
+    let response_7 = get_icsp_buckets("5ekwd-fyaaa-aaaan-qaxlq-cai").await;
+    match response_7 {
+        Some(response) => {
+            println!("old buckets:");
+            for i in &response.old_buckets {
+                println!("{:?}", i.to_text());
+            }
+            println!("Live Buckets:");
+            for i in &response.live_buckets {
+                println!(
+                    "canister_id:{:?}, used_memory:{:?}",
+                    i.canister_id.to_text(),
+                    i.used_memory,
+                );
+            }
+        }
+        None => println!("icsp do not have buckets"),
+    }
+
+    println!("icsp admins:");
+    for i in &get_icsp_admins("4radi-oqaaa-aaaan-qapwa-cai").await {
+        println!("{:?}", i.to_text());
+    }
+
+    // url format : icsp_canister_id.raw.ic0.app/'option location'/file_key
+    // icsp_canister_id.raw.ic0.app/ic/file_key
+    // icsp_canister_id.raw.ic0.app/ipfs/file_key
+    // icsp_canister_id.raw.ic0.app/ar/file_key
+    for i in &store_files("source/", "4radi-oqaaa-aaaan-qapwa-cai", true).await {
+        println!("file_name:{:?},file_key:{:?}", i.0, i.1);
+    }
+
+    // url format : icsp_canister_id.raw.ic0.app/'option location'/file_key
+    // icsp_canister_id.raw.ic0.app/ic/file_key
+    // icsp_canister_id.raw.ic0.app/ipfs/file_key
+    // icsp_canister_id.raw.ic0.app/ar/file_key
+    let respoonse_8 = store_file("source/bitcoin.pdf", "5ekwd-fyaaa-aaaan-qaxlq-cai", true).await;
+    println!("file_name:{:?},file_key:{:?}", respoonse_8.0, respoonse_8.1);
+
+    let response_10 = get_file(
+        "4radi-oqaaa-aaaan-qapwa-cai",
+        "3166112af0dcc940f8e7f2199a4200cfb5e2efb40796391201b8fe9e4ff7ca84",
+    )
+    .await;
+    let mut file = std::fs::File::create("output/bitcoin.pdf").expect("create failed");
+    file.write_all(&response_10.0).expect("write failed");
+    println!(
+        "file out put at folder output/ , file_type:{:?}",
+        response_10.1
+    );
+
+    let response_12 = add_icsp_admin(
+        "4radi-oqaaa-aaaan-qapwa-cai",
+        "bxgws-37y5d-tgmpr-hekbp-y3uxo-yicgs-fo7p3-ccnta-kidrz-74onh-pae",
+    )
+    .await;
+
+    println!(
+        "topup icsp with XTC result:{:?}\n",
+        top_up_icsp_with_xtc(BurnArgs {
+            canister_id: Principal::from_text("hf34l-eyaaa-aaaan-qav5q-cai").unwrap(),
+            amount: 1_000_000_000_000 as u64 - 2_000_000_000 as u64,
+        })
+        .await
+    );
+
+    println!(
+        "icsp cycle balance:{:?}\n",
+        get_cycle_balance("4radi-oqaaa-aaaan-qapwa-cai").await
+    );
+
+    println!(
+        "get all ic file key result: {:?}",
+        get_all_ic_file_key("identities/identity.pem", "4radi-oqaaa-aaaan-qapwa-cai").await
+    );
 
     println!("get file info result:");
     match get_file_info(
