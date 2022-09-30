@@ -9,6 +9,7 @@ type icsp =
    getBucketOfFile: (text) -> (opt principal) query;
    getBuckets: () -> (opt Buckets) query;
    getCycleBalance: () -> (nat) query;
+   getFileInfo: (text) -> (opt FileBufExt) query;
    getOtherFile: (text, FileLocation__1) -> (opt OtherFile) query;
    http_request: (HttpRequest) -> (HttpResponse) query;
    init: () -> (LiveBucketExt);
@@ -17,7 +18,7 @@ type icsp =
    topUpBucket: (nat) -> ();
    wallet_receive: () -> (nat);
  };
-type StreamingCallbackHttpResponse = 
+type StreamingCallbackHttpResponse =
  record {
    body: blob;
    token: opt CallbackToken;
@@ -30,7 +31,7 @@ type StreamStrategy = variant {
                              (StreamingCallbackHttpResponse) query;
                            token: CallbackToken;
                          };};
-type StoreArgs = 
+type StoreArgs =
  record {
    file_type: text;
    index: nat;
@@ -40,51 +41,61 @@ type StoreArgs =
    total_size: nat64;
    value: blob;
  };
-type OtherFile = 
+type OtherFile =
  record {
    file_key: text;
    file_location: FileLocation;
    file_type: text;
    file_url: text;
  };
-type LiveBucketExt__1 = 
+type LiveBucketExt__1 =
  record {
    canister_id: principal;
    used_memory: nat;
  };
-type LiveBucketExt = 
+type LiveBucketExt =
  record {
    canister_id: principal;
    used_memory: nat;
  };
-type HttpResponse = 
+type HttpResponse =
  record {
    body: blob;
    headers: vec HeaderField;
    status_code: nat16;
    streaming_strategy: opt StreamStrategy;
  };
-type HttpRequest = 
+type HttpRequest =
  record {
    body: blob;
    headers: vec HeaderField;
    method: text;
    url: text;
  };
-type HeaderField = 
+type HeaderField =
  record {
    text;
    text;
  };
-type FileLocation__1 = 
+type FileLocation__1 =
  variant {
    Arweave;
    IPFS;
  };
-type FileLocation = 
+type FileLocation =
  variant {
    Arweave;
    IPFS;
+ };
+type FileBufExt =
+ record {
+   bucket_id: principal;
+   file_type: text;
+   is_http_open: bool;
+   received: nat;
+   total_index: nat;
+   total_size: nat64;
+   wrote_page: vec bool;
  };
 type CallbackToken = 
  record {

@@ -8,7 +8,7 @@ use sha256::digest_bytes;
 use std::fs::{self};
 use std::path::Path;
 mod icsp_did;
-pub use icsp_did::{Buckets, LiveBucketExt, StoreArgs};
+pub use icsp_did::{Buckets, FileBufExt, LiveBucketExt, StoreArgs};
 
 const UPDATE_SIZE: usize = 1992288;
 
@@ -45,6 +45,22 @@ pub async fn get_all_ic_file_key(
         .await
         .expect("response error");
     let response = Decode!(&response_blob, Vec<String>).unwrap();
+    response
+}
+
+pub async fn get_file_info(
+    pem_identity_path: &str,
+    icsp_canister_id_text: &str,
+    file_key: String,
+) -> Option<FileBufExt> {
+    let canister_id = ic_agent::ic_types::Principal::from_text(icsp_canister_id_text).unwrap();
+    let response_blob = build_agent(pem_identity_path)
+        .query(&canister_id, "getFileInfo")
+        .with_arg(Encode!(&file_key).expect("encode piece failed"))
+        .call()
+        .await
+        .expect("response error");
+    let response = Decode!(&response_blob, Option<FileBufExt>).unwrap();
     response
 }
 

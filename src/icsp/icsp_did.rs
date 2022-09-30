@@ -1,6 +1,6 @@
 use candid::{Nat, Principal};
 use ic_cdk::api::call::CallResult;
-use ic_cdk::export::candid::{self, CandidType, Deserialize};
+use ic_cdk::export::candid::{CandidType, Deserialize};
 
 #[derive(CandidType, Deserialize, Debug)]
 pub struct LiveBucketExt {
@@ -12,6 +12,17 @@ pub struct LiveBucketExt {
 pub struct Buckets {
     pub old_buckets: Vec<Principal>,
     pub live_buckets: Vec<LiveBucketExt>,
+}
+
+#[derive(CandidType, Deserialize, Debug)]
+pub struct FileBufExt {
+    pub bucket_id: Principal,
+    pub total_index: Nat,
+    pub wrote_page: Vec<bool>,
+    pub file_type: String,
+    pub is_http_open: bool,
+    pub total_size: u64,
+    pub received: Nat,
 }
 
 #[derive(CandidType, Deserialize, Debug)]
@@ -45,6 +56,10 @@ struct SERVICE(Principal);
 impl SERVICE {
     pub async fn get_cycle_balance(&self) -> CallResult<(Nat,)> {
         ic_cdk::call(self.0, "getCycleBalance", ()).await
+    }
+
+    pub async fn get_file_info(&self, file_key: String) -> CallResult<(Option<FileBufExt>,)> {
+        ic_cdk::call(self.0, "getFileInfo", (file_key,)).await
     }
 
     pub async fn get_all_ic_file_key(&self) -> CallResult<(Vec<String>,)> {

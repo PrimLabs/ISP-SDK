@@ -1,6 +1,6 @@
 use candid::{Nat, Principal};
 use ic_cdk::api::call::CallResult;
-use ic_cdk::export::candid::{self, CandidType, Deserialize};
+use ic_cdk::export::candid::{CandidType, Deserialize};
 
 #[derive(CandidType, Deserialize, Debug)]
 pub struct LiveBucket {
@@ -54,8 +54,8 @@ impl SERVICE {
     }
     pub async fn update_bucket_canister_controller(
         &self,
-        canister_id: Principal,
-        contoller: Vec<Principal>,
+        canister_id: ic_cdk::export::Principal,
+        contoller: Vec<ic_cdk::export::Principal>,
     ) -> CallResult<(bool,)> {
         ic_cdk::call(
             self.0,

@@ -1,6 +1,6 @@
 use candid::{Nat, Principal};
 use ic_cdk::api::call::CallResult;
-use ic_cdk::export::candid::{self, CandidType, Deserialize};
+use ic_cdk::export::candid::{CandidType, Deserialize};
 
 type BlockIndex = u64;
 
