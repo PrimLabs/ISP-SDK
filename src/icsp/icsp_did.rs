@@ -90,12 +90,12 @@ impl SERVICE {
         ic_cdk::call(self.0, "getOtherFile", (file_key, file_location)).await
     }
 
-    pub async fn add_admin(&self, newAdmin: Principal) -> CallResult<()> {
-        ic_cdk::call(self.0, "addAdmin", (newAdmin,)).await
+    pub async fn add_admin(&self, new_admin: Principal) -> CallResult<()> {
+        ic_cdk::call(self.0, "addAdmin", (new_admin,)).await
     }
 
-    pub async fn delete_admin(&self, oldAdmin: Principal) -> CallResult<()> {
-        ic_cdk::call(self.0, "deleteAdmin", (oldAdmin,)).await
+    pub async fn delete_admin(&self, old_admin: Principal) -> CallResult<()> {
+        ic_cdk::call(self.0, "deleteAdmin", (old_admin,)).await
     }
 
     pub async fn get_admins(&self) -> CallResult<(Vec<Principal>,)> {

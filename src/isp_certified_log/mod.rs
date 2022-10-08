@@ -37,7 +37,7 @@ pub async fn get_buckets(
     pem_identity_path: &str,
     icsp_log_canister_id_text: &str,
 ) -> Option<Buckets> {
-    let canister_id = ic_agent::ic_types::Principal::from_text(icsp_log_canister_id_text).unwrap();
+    let canister_id = candid::Principal::from_text(icsp_log_canister_id_text).unwrap();
     let response_blob = build_agent(pem_identity_path)
         .query(&canister_id, "getBuckets")
         .with_arg(Encode!().expect("encode piece failed"))
@@ -65,7 +65,7 @@ pub async fn get_buckets(
 /// }
 /// ```
 pub async fn get_log_num(pem_identity_path: &str, icsp_log_canister_id_text: &str) -> u128 {
-    let canister_id = ic_agent::ic_types::Principal::from_text(icsp_log_canister_id_text).unwrap();
+    let canister_id = candid::Principal::from_text(icsp_log_canister_id_text).unwrap();
     let response_blob = build_agent(pem_identity_path)
         .query(&canister_id, "getLogNum")
         .with_arg(Encode!().expect("encode piece failed"))
@@ -110,7 +110,7 @@ pub async fn get_logs(
     start: u128,
     end: u128,
 ) -> Option<Vec<CertifiedLog>> {
-    let canister_id = ic_agent::ic_types::Principal::from_text(icsp_log_canister_id_text).unwrap();
+    let canister_id = candid::Principal::from_text(icsp_log_canister_id_text).unwrap();
     let agent = build_agent(pem_identity_path);
     let response_blob = agent
         .query(&canister_id, "getLogs")
@@ -125,7 +125,7 @@ pub async fn get_logs(
             for i in &ans {
                 let response_blob = agent
                     .query(
-                        &ic_agent::ic_types::Principal::from_text(i.2.to_text()).unwrap(),
+                        &candid::Principal::from_text(i.2.to_text()).unwrap(),
                         "getLogs",
                     )
                     .with_arg(Encode!(&i.0, &i.1).expect("encode piece failed"))
@@ -174,7 +174,7 @@ pub async fn get_admins(
     pem_identity_path: &str,
     icsp_log_canister_id_text: &str,
 ) -> Vec<candid::Principal> {
-    let canister_id = ic_agent::ic_types::Principal::from_text(icsp_log_canister_id_text).unwrap();
+    let canister_id = candid::Principal::from_text(icsp_log_canister_id_text).unwrap();
     let response_blob = build_agent(pem_identity_path)
         .query(&canister_id, "getAdmins")
         .with_arg(Encode!().expect("encode piece failed"))
@@ -206,7 +206,7 @@ pub async fn get_admins(
 /// }
 /// ```
 pub async fn store(pem_identity_path: &str, icsp_log_canister_id_text: &str, args: StoreLog) {
-    let canister_id = ic_agent::ic_types::Principal::from_text(icsp_log_canister_id_text).unwrap();
+    let canister_id = candid::Principal::from_text(icsp_log_canister_id_text).unwrap();
     let response_blob = build_agent(pem_identity_path)
         .update(&canister_id, "store")
         .with_arg(Encode!(&args).expect("encode piece failed"))
@@ -223,7 +223,7 @@ pub async fn update_bucket_canister_controller(
     bucket_canister_id: candid::Principal,
     contoller: Vec<candid::Principal>,
 ) -> bool {
-    let canister_id = ic_agent::ic_types::Principal::from_text(icsp_log_canister_id_text).unwrap();
+    let canister_id = candid::Principal::from_text(icsp_log_canister_id_text).unwrap();
     let response_blob = build_agent(pem_identity_path)
         .update(&canister_id, "updateBucketCanisterController")
         .with_arg(Encode!(&bucket_canister_id, &contoller).expect("encode piece failed"))
@@ -261,7 +261,7 @@ pub async fn add_admin(
     icsp_log_canister_id_text: &str,
     new_admin_text: &str,
 ) {
-    let canister_id = ic_agent::ic_types::Principal::from_text(icsp_log_canister_id_text).unwrap();
+    let canister_id = candid::Principal::from_text(icsp_log_canister_id_text).unwrap();
     let new_admin = candid::Principal::from_text(new_admin_text).unwrap();
     let response_blob = build_agent(pem_identity_path)
         .update(&canister_id, "addAdmin")
@@ -300,7 +300,7 @@ pub async fn delete_admin(
     icsp_log_canister_id_text: &str,
     old_admin_text: &str,
 ) {
-    let canister_id = ic_agent::ic_types::Principal::from_text(icsp_log_canister_id_text).unwrap();
+    let canister_id = candid::Principal::from_text(icsp_log_canister_id_text).unwrap();
     let old_admin = candid::Principal::from_text(old_admin_text).unwrap();
     let response_blob = build_agent(pem_identity_path)
         .update(&canister_id, "deleteAdmin")

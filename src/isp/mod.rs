@@ -32,7 +32,7 @@ static ISP_CANISTER_ID_TEXT: &'static str = "p2pki-xyaaa-aaaan-qatua-cai";
 /// }
 /// ```
 pub async fn get_user_icsps(pem_identity_path: &str) -> Vec<(String, candid::Principal)> {
-    let canister_id = ic_agent::ic_types::Principal::from_text(ISP_CANISTER_ID_TEXT).unwrap();
+    let canister_id = candid::Principal::from_text(ISP_CANISTER_ID_TEXT).unwrap();
     let response_blob = build_agent(pem_identity_path)
         .query(&canister_id, "getUserICSPs")
         .with_arg(Encode!().expect("encode error"))
@@ -61,7 +61,7 @@ pub async fn get_user_icsps(pem_identity_path: &str) -> Vec<(String, candid::Pri
 /// }
 /// ```
 pub async fn get_sub_account(pem_identity_path: &str) -> String {
-    let canister_id = ic_agent::ic_types::Principal::from_text(ISP_CANISTER_ID_TEXT).unwrap();
+    let canister_id = candid::Principal::from_text(ISP_CANISTER_ID_TEXT).unwrap();
     let response_blob = build_agent(pem_identity_path)
         .query(&canister_id, "getSubAccount")
         .with_arg(Encode!().expect("encode error"))
@@ -90,7 +90,7 @@ pub async fn get_sub_account(pem_identity_path: &str) -> String {
 /// }
 /// ```
 pub async fn get_icp_balance(pem_identity_path: &str) -> u64 {
-    let canister_id = ic_agent::ic_types::Principal::from_text(ISP_CANISTER_ID_TEXT).unwrap();
+    let canister_id = candid::Principal::from_text(ISP_CANISTER_ID_TEXT).unwrap();
     let response_blob = build_agent(pem_identity_path)
         .update(&canister_id, "getICPBalance")
         .with_arg(Encode!().expect("encode error"))
@@ -126,7 +126,7 @@ pub async fn get_icp_balance(pem_identity_path: &str) -> u64 {
 /// }
 /// ```
 pub async fn transfer_out_icp(pem_identity_path: &str, to: &str, amount: u64) -> TransferResult {
-    let canister_id = ic_agent::ic_types::Principal::from_text(ISP_CANISTER_ID_TEXT).unwrap();
+    let canister_id = candid::Principal::from_text(ISP_CANISTER_ID_TEXT).unwrap();
     let response_blob = build_agent(pem_identity_path)
         .update(&canister_id, "transferOutICP")
         .with_arg(Encode!(&(hex::decode(to).unwrap()), &amount).expect("encode error"))
@@ -157,7 +157,7 @@ pub async fn transfer_out_icp(pem_identity_path: &str, to: &str, amount: u64) ->
 /// }
 /// ```
 pub async fn get_isp_admins(pem_identity_path: &str) -> Vec<candid::Principal> {
-    let canister_id = ic_agent::ic_types::Principal::from_text(ISP_CANISTER_ID_TEXT).unwrap();
+    let canister_id = candid::Principal::from_text(ISP_CANISTER_ID_TEXT).unwrap();
     let response_blob = build_agent(pem_identity_path)
         .query(&canister_id, "getAdmins")
         .with_arg(Encode!().expect("encode error"))
@@ -215,7 +215,7 @@ pub async fn create_icsp(
     xtc_to_topup_amount: u64,
 ) -> (CreateICSPResult, Option<BurnResult>) {
     // create a icsp canister
-    let isp_canister_id = ic_agent::ic_types::Principal::from_text(ISP_CANISTER_ID_TEXT).unwrap();
+    let isp_canister_id = candid::Principal::from_text(ISP_CANISTER_ID_TEXT).unwrap();
     let agent = build_agent(pem_identity_path);
     let response_blob = agent
         .update(&isp_canister_id, "createICSP")
@@ -238,10 +238,9 @@ pub async fn create_icsp(
             match top_up_response {
                 BurnResult::Ok(block_index) => {
                     // init icsp
-                    let init_response = agent
+                    let _init_response = agent
                         .update(
-                            &ic_agent::ic_types::Principal::from_text(icsp_canister_id.to_text())
-                                .unwrap(),
+                            &candid::Principal::from_text(icsp_canister_id.to_text()).unwrap(),
                             "init",
                         )
                         .with_arg(Encode!().expect("encode error"))
@@ -290,7 +289,7 @@ pub async fn create_icsp(
 ///     );
 /// }
 pub async fn top_up_icsp(pem_identity_path: &str, args: TopUpArgs) -> TopUpResult {
-    let canister_id = ic_agent::ic_types::Principal::from_text(ISP_CANISTER_ID_TEXT).unwrap();
+    let canister_id = candid::Principal::from_text(ISP_CANISTER_ID_TEXT).unwrap();
     let response_blob = build_agent(pem_identity_path)
         .update(&canister_id, "topUpICSP")
         .with_arg(Encode!(&args).expect("encode error"))
@@ -345,8 +344,7 @@ pub enum BurnError {
 ///     );
 /// }
 pub async fn top_up_icsp_with_xtc(pem_identity_path: &str, args: BurnArgs) -> BurnResult {
-    let canister_id =
-        ic_agent::ic_types::Principal::from_text("aanaa-xaaaa-aaaah-aaeiq-cai").unwrap();
+    let canister_id = candid::Principal::from_text("aanaa-xaaaa-aaaah-aaeiq-cai").unwrap();
     let response_blob = build_agent(pem_identity_path)
         .update(&canister_id, "burn")
         .with_arg(Encode!(&args).expect("encode error"))

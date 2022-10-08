@@ -2,11 +2,9 @@ use candid::{CandidType, Decode, Encode, Nat};
 use garcon::Delay;
 use ic_agent::agent::http_transport::ReqwestHttpReplicaV2Transport;
 use ic_agent::{identity::Secp256k1Identity, Agent};
-use rayon::prelude::*;
-use serde::Deserialize;
-use sha256::digest_bytes;
 use std::fs::{self};
 use std::path::Path;
+use uuid::Uuid;
 mod icsp_did;
 pub use icsp_did::{Buckets, FileBufExt, LiveBucketExt, StoreArgs};
 
@@ -37,7 +35,7 @@ pub async fn get_all_ic_file_key(
     pem_identity_path: &str,
     icsp_canister_id_text: &str,
 ) -> Vec<String> {
-    let canister_id = ic_agent::ic_types::Principal::from_text(icsp_canister_id_text).unwrap();
+    let canister_id = candid::Principal::from_text(icsp_canister_id_text).unwrap();
     let response_blob = build_agent(pem_identity_path)
         .query(&canister_id, "getAllIcFileKey")
         .with_arg(Encode!().expect("encode piece failed"))
@@ -90,7 +88,7 @@ pub async fn get_file_info(
     icsp_canister_id_text: &str,
     file_key: String,
 ) -> Option<FileBufExt> {
-    let canister_id = ic_agent::ic_types::Principal::from_text(icsp_canister_id_text).unwrap();
+    let canister_id = candid::Principal::from_text(icsp_canister_id_text).unwrap();
     let response_blob = build_agent(pem_identity_path)
         .query(&canister_id, "getFileInfo")
         .with_arg(Encode!(&file_key).expect("encode piece failed"))
@@ -122,7 +120,7 @@ pub async fn get_file_info(
 ///     );
 /// }
 pub async fn get_cycle_balance(pem_identity_path: &str, icsp_canister_id_text: &str) -> Nat {
-    let canister_id = ic_agent::ic_types::Principal::from_text(icsp_canister_id_text).unwrap();
+    let canister_id = candid::Principal::from_text(icsp_canister_id_text).unwrap();
     let response_blob = build_agent(pem_identity_path)
         .query(&canister_id, "getCycleBalance")
         .with_arg(Encode!().expect("encode piece failed"))
@@ -162,7 +160,7 @@ pub async fn get_bucket_of_file(
     icsp_canister_id_text: &str,
     file_key: &str,
 ) -> Option<candid::Principal> {
-    let canister_id = ic_agent::ic_types::Principal::from_text(icsp_canister_id_text).unwrap();
+    let canister_id = candid::Principal::from_text(icsp_canister_id_text).unwrap();
     let response_blob = build_agent(pem_identity_path)
         .query(&canister_id, "getBucketOfFile")
         .with_arg(Encode!(&file_key).expect("encode piece failed"))
@@ -209,7 +207,7 @@ pub async fn get_icsp_buckets(
     pem_identity_path: &str,
     icsp_canister_id_text: &str,
 ) -> Option<Buckets> {
-    let canister_id = ic_agent::ic_types::Principal::from_text(icsp_canister_id_text).unwrap();
+    let canister_id = candid::Principal::from_text(icsp_canister_id_text).unwrap();
     let response_blob = build_agent(pem_identity_path)
         .query(&canister_id, "getBuckets")
         .with_arg(Encode!().expect("encode piece failed"))
@@ -242,7 +240,7 @@ pub async fn get_icsp_admins(
     pem_identity_path: &str,
     icsp_canister_id_text: &str,
 ) -> Vec<candid::Principal> {
-    let canister_id = ic_agent::ic_types::Principal::from_text(icsp_canister_id_text).unwrap();
+    let canister_id = candid::Principal::from_text(icsp_canister_id_text).unwrap();
     let response_blob = build_agent(pem_identity_path)
         .query(&canister_id, "getAdmins")
         .with_arg(Encode!().expect("encode error"))
@@ -291,7 +289,7 @@ pub async fn store_files(
     icsp_canister_id_text: &str,
     is_http_open: bool,
 ) -> Vec<(String, String)> {
-    let canister_id = ic_agent::ic_types::Principal::from_text(icsp_canister_id_text).unwrap();
+    let canister_id = candid::Principal::from_text(icsp_canister_id_text).unwrap();
     let agent = build_agent(pem_identity_path);
 
     let mut ans: Vec<(String, String)> = Vec::new();
@@ -305,8 +303,9 @@ pub async fn store_files(
         let s = folder_path.to_owned() + &file_path;
 
         let (file_size, data_slice) = get_file_from_source(&s);
-
+        let file_key = Uuid::new_v4().to_string();
         let puts = build_store_args(
+            file_key.clone(),
             file_extension,
             file_size.try_into().unwrap(),
             &data_slice,
@@ -320,12 +319,14 @@ pub async fn store_files(
                 .await
                 .expect("response error");
         }
-        ans.push((file_name.clone(), puts[0].key.clone()));
+        ans.push((file_name.clone(), file_key.clone()));
     }
     ans
 }
 
 /// Store a file from file_path
+///
+/// return (file_name, file_key)
 ///
 /// If http open,url format: icsp_canister_id.raw.ic0.app/ic/file_key
 ///
@@ -363,7 +364,7 @@ pub async fn store_file(
     icsp_canister_id_text: &str,
     is_http_open: bool,
 ) -> (String, String) {
-    let canister_id = ic_agent::ic_types::Principal::from_text(icsp_canister_id_text).unwrap();
+    let canister_id = candid::Principal::from_text(icsp_canister_id_text).unwrap();
     let agent = build_agent(pem_identity_path);
     let file_path = Path::new(file_path_str);
     let file_name = file_path.file_stem().unwrap().to_str().unwrap().to_owned();
@@ -372,8 +373,9 @@ pub async fn store_file(
     ));
 
     let (file_size, data_slice) = get_file_from_source(file_path_str);
-
+    let file_key = Uuid::new_v4().to_string();
     let puts = build_store_args(
+        file_key.clone(),
         file_extension,
         file_size.try_into().unwrap(),
         &data_slice,
@@ -387,7 +389,71 @@ pub async fn store_file(
             .await
             .expect("response error");
     }
-    (file_name, puts[0].key.clone())
+    (file_name, file_key.clone())
+}
+
+/// Store str data
+///
+/// If http open,url format: icsp_canister_id.raw.ic0.app/ic/file_key
+///
+/// Example code :
+/// ``` no_run
+/// use isp_sdk::icsp;
+///
+/// async fn store_str(data: &str, icsp_canister_id_text: &str, is_http_open: bool) -> String {
+///     icsp::store_str(
+///         "identities/identity.pem",
+///         data,
+///         icsp_canister_id_text,
+///         is_http_open,
+///     ).await
+/// }
+///
+/// #[tokio::main]
+/// async fn main() {
+///     // url format : icsp_canister_id.raw.ic0.app/'option location'/file_key
+///     // icsp_canister_id.raw.ic0.app/ic/file_key
+///     // icsp_canister_id.raw.ic0.app/ipfs/file_key
+///     // icsp_canister_id.raw.ic0.app/ar/file_key
+///     println!(
+///         "store_str, file_key: {:?}",
+///         store_str(
+///             "test_isp_sdk_store_str",
+///             "4radi-oqaaa-aaaan-qapwa-cai",
+///             true
+///         )
+///         .await
+///     );
+/// }
+/// ```
+pub async fn store_str(
+    pem_identity_path: &str,
+    data: &str,
+    icsp_canister_id_text: &str,
+    is_http_open: bool,
+) -> String {
+    let canister_id = candid::Principal::from_text(icsp_canister_id_text).unwrap();
+    let file_extension = "text/plain".to_string();
+    let file_size = data.len();
+    let file_key = Uuid::new_v4().to_string();
+
+    let put = StoreArgs {
+        key: file_key.clone(),
+        value: data.as_bytes().to_owned(),
+        total_index: Nat::from(1),
+        file_type: file_extension.clone(),
+        total_size: file_size.clone() as u64,
+        is_http_open: is_http_open.clone(),
+        index: Nat::from(0),
+    };
+    let _response_blob = build_agent(pem_identity_path)
+        .update(&canister_id, "store")
+        .with_arg(Encode!(&put).expect("encode piece failed"))
+        .call_and_wait(get_waiter())
+        .await
+        .expect("response error");
+
+    file_key
 }
 
 /// Get file from icsp, return (data, file_type)
@@ -429,7 +495,7 @@ pub async fn get_file(
 
     let total_index_blob = agent
         .update(
-            &ic_agent::ic_types::Principal::from_text(bucket_canister_id.to_text()).unwrap(),
+            &candid::Principal::from_text(bucket_canister_id.to_text()).unwrap(),
             "getFileTotalIndex",
         )
         .with_arg(Encode!(&file_key).expect("encode failed"))
@@ -446,7 +512,7 @@ pub async fn get_file(
     while Nat::from(index) < total_index {
         let response_blob = agent
             .query(
-                &ic_agent::ic_types::Principal::from_text(bucket_canister_id.to_text()).unwrap(),
+                &candid::Principal::from_text(bucket_canister_id.to_text()).unwrap(),
                 "get",
             )
             .with_arg(Encode!(&file_key, &Nat::from(index)).expect("encode failed"))
@@ -493,9 +559,9 @@ pub async fn add_icsp_admin(
     icsp_canister_id_text: &str,
     new_admin_text: &str,
 ) {
-    let canister_id = ic_agent::ic_types::Principal::from_text(icsp_canister_id_text).unwrap();
+    let canister_id = candid::Principal::from_text(icsp_canister_id_text).unwrap();
     let new_admin = candid::Principal::from_text(new_admin_text).unwrap();
-    let response_blob = build_agent(pem_identity_path)
+    let _response_blob = build_agent(pem_identity_path)
         .update(&canister_id, "addAdmin")
         .with_arg(Encode!(&new_admin).expect("encode error"))
         .call_and_wait(get_waiter())
@@ -530,9 +596,9 @@ pub async fn delete_icsp_admin(
     icsp_canister_id_text: &str,
     old_admin_text: &str,
 ) {
-    let canister_id = ic_agent::ic_types::Principal::from_text(icsp_canister_id_text).unwrap();
+    let canister_id = candid::Principal::from_text(icsp_canister_id_text).unwrap();
     let old_admin = candid::Principal::from_text(old_admin_text).unwrap();
-    let response_blob = build_agent(pem_identity_path)
+    let _response_blob = build_agent(pem_identity_path)
         .update(&canister_id, "deleteAdmin")
         .with_arg(Encode!(&old_admin).expect("encode error"))
         .call_and_wait(get_waiter())
@@ -580,28 +646,8 @@ fn get_file_from_source(path: &str) -> (usize, Vec<Vec<u8>>) {
     (size, res)
 }
 
-fn get_file_sha256_digest(context: &Vec<Vec<u8>>) -> Vec<Vec<u8>> {
-    let mut digests = vec![vec![0x00 as u8]; context.len()];
-    let mut contents = digests.iter_mut().zip(context.iter()).collect::<Vec<_>>();
-    contents
-        .par_iter_mut()
-        .for_each(|(d, text)| **d = digest_bytes(*text).into_bytes()[..32].to_vec());
-    digests
-}
-
-fn get_file_key(digests: &Vec<Vec<u8>>) -> String {
-    let mut digest = vec![0x00 as u8; 32 * digests.len()];
-    let mut _index = 0;
-    for bytes in digests {
-        for byte in bytes {
-            digest.push(*byte);
-            _index += 1;
-        }
-    }
-    digest_bytes(&digest)
-}
-
 fn build_store_args(
+    file_key: String,
     file_extension: String,
     total_size: u128,
     data_slice: &Vec<Vec<u8>>,
@@ -609,7 +655,6 @@ fn build_store_args(
 ) -> Vec<StoreArgs> {
     let mut order = 0;
     let mut puts = vec![];
-    let file_key = get_file_key(&get_file_sha256_digest(data_slice));
     for data in data_slice {
         puts.push(StoreArgs {
             key: file_key.clone(),

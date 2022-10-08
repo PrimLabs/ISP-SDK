@@ -62,7 +62,7 @@ pub async fn test() {
         "the file in bucekt:{:?}\n",
         get_bucket_of_file(
             "4radi-oqaaa-aaaan-qapwa-cai",
-            "14d37b8971e5c73a523de39e0682ba0c08df3a503c49f4f976fe282bc60abfef",
+            "bf0efa3d-6639-4d62-a81d-c90974cc6925",
         )
         .await
         .expect("no bucket have this file")
@@ -105,8 +105,22 @@ pub async fn test() {
     // icsp_canister_id.raw.ic0.app/ic/file_key
     // icsp_canister_id.raw.ic0.app/ipfs/file_key
     // icsp_canister_id.raw.ic0.app/ar/file_key
-    let respoonse_8 = store_file("source/bitcoin.pdf", "5ekwd-fyaaa-aaaan-qaxlq-cai", true).await;
+    let respoonse_8 = store_file("source/bitcoin.pdf", "4radi-oqaaa-aaaan-qapwa-cai", true).await;
     println!("file_name:{:?},file_key:{:?}", respoonse_8.0, respoonse_8.1);
+
+    // url format : icsp_canister_id.raw.ic0.app/'option location'/file_key
+    // icsp_canister_id.raw.ic0.app/ic/file_key
+    // icsp_canister_id.raw.ic0.app/ipfs/file_key
+    // icsp_canister_id.raw.ic0.app/ar/file_key
+    println!(
+        "store_str, file_key: {:?}",
+        store_str(
+            "test_isp_sdk_store_str",
+            "4radi-oqaaa-aaaan-qapwa-cai",
+            true
+        )
+        .await
+    );
 
     let response_10 = get_file(
         "4radi-oqaaa-aaaan-qapwa-cai",
@@ -148,8 +162,8 @@ pub async fn test() {
     println!("get file info result:");
     match get_file_info(
         "identities/identity.pem",
-        "5ekwd-fyaaa-aaaan-qaxlq-cai",
-        "14d37b8971e5c73a523de39e0682ba0c08df3a503c49f4f976fe282bc60abfef".to_string(),
+        "4radi-oqaaa-aaaan-qapwa-cai",
+        "49c1dadd-6fa6-4f15-b963-1a1e6f111028".to_string(),
     )
     .await
     {
@@ -231,6 +245,16 @@ async fn store_file(
     icsp::store_file(
         "identities/identity.pem",
         file_path_str,
+        icsp_canister_id_text,
+        is_http_open,
+    )
+    .await
+}
+
+async fn store_str(data: &str, icsp_canister_id_text: &str, is_http_open: bool) -> String {
+    icsp::store_str(
+        "identities/identity.pem",
+        data,
         icsp_canister_id_text,
         is_http_open,
     )
