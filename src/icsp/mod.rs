@@ -14,23 +14,15 @@ const UPDATE_SIZE: usize = 1992288;
 ///
 /// Example code :
 /// ``` no_run
-/// use candid::Nat;
 /// use isp_sdk::icsp;
 ///
-/// async fn get_all_ic_file_key(
-///     pem_identity_path: &str,
-///     icsp_canister_id_text: &str,
-/// ) -> Vec<String> {
-///     icsp::get_all_ic_file_key("identities/identity.pem", icsp_canister_id_text).await
+/// pub async fn get_all_ic_file_key() {
+///   println!(
+///     "get all ic file key result: {:?}",
+///     icsp::get_all_ic_file_key("identities/identity.pem", "4radi-oqaaa-aaaan-qapwa-cai").await
+///  );
 /// }
-///
-/// #[tokio::main]
-/// async fn main() {
-///     println!(
-///         "get all ic file key result: {:?}",
-///         get_all_ic_file_key("identities/identity.pem", "4radi-oqaaa-aaaan-qapwa-cai").await
-///     );
-/// }
+/// ```
 pub async fn get_all_ic_file_key(
     pem_identity_path: &str,
     icsp_canister_id_text: &str,
@@ -50,39 +42,28 @@ pub async fn get_all_ic_file_key(
 ///
 /// Example code :
 /// ``` no_run
-/// use candid::Nat;
-/// use isp_sdk::icsp::{self, FileBufExt};
-///
-/// async fn get_file_info(
-///     pem_identity_path: &str,
-///     icsp_canister_id_text: &str,
-///     file_key: String,
-/// ) -> Option<FileBufExt> {
-///     icsp::get_file_info("identities/identity.pem", icsp_canister_id_text, file_key).await
-/// }
-///
-/// #[tokio::main]
-/// async fn main() {
-///     println!("get file info result:");
-///     match get_file_info(
-///         "identities/identity.pem",
-///         "5ekwd-fyaaa-aaaan-qaxlq-cai",
-///         "14d37b8971e5c73a523de39e0682ba0c08df3a503c49f4f976fe282bc60abfef".to_string(),
-///     )
-///     .await
-///     {
-///         None => println!("do not have this file"),
-///         Some(file_info) => {
-///             println!("bucket_id: {:?}", file_info.bucket_id.to_text());
-///             println!("total_index: {:?}", file_info.total_index);
-///             println!("received chunk_number: {:?}", file_info.received);
-///             println!("wrote_page: {:?}", file_info.wrote_page);
-///             println!("file type: {:?}", file_info.file_type);
-///             println!("is_http_open: {:?}", file_info.is_http_open);
-///             println!("total_size: {:?}", file_info.total_size);
-///         }
-///     }
-/// }
+/// use isp_sdk::icsp;
+/// pub async fn get_file_info() {
+///    println!("get file info result:");
+///    match icsp::get_file_info(
+///        "identities/identity.pem",
+///        "4radi-oqaaa-aaaan-qapwa-cai",
+///        "49c1dadd-6fa6-4f15-b963-1a1e6f111028".to_string(),
+///    )
+///        .await
+///    {
+///        None => println!("do not have this file"),
+///        Some(file_info) => {
+///            println!("bucket_id: {:?}", file_info.bucket_id.to_text());
+///            println!("total_index: {:?}", file_info.total_index);
+///            println!("received chunk_number: {:?}", file_info.received);
+///            println!("wrote_page: {:?}", file_info.wrote_page);
+///            println!("file type: {:?}", file_info.file_type);
+///            println!("is_http_open: {:?}", file_info.is_http_open);
+///            println!("total_size: {:?}", file_info.total_size);
+///        }
+///    };
+/// ```
 pub async fn get_file_info(
     pem_identity_path: &str,
     icsp_canister_id_text: &str,
@@ -105,20 +86,15 @@ pub async fn get_file_info(
 ///
 /// Example code :
 /// ``` no_run
-/// use candid::Nat;
 /// use isp_sdk::icsp;
 ///
-/// async fn get_cycle_balance(icsp_canister_id_text: &str) -> Nat {
-///     icsp::get_cycle_balance("identities/identity.pem", icsp_canister_id_text).await
-/// }
-///
-/// #[tokio::main]
-/// async fn main() {
+/// pub async fn get_cycle_balance() {
 ///     println!(
 ///         "icsp cycle balance:{:?}\n",
-///         get_cycle_balance("4radi-oqaaa-aaaan-qapwa-cai").await
+///         icsp::get_cycle_balance("identities/identity.pem", "4radi-oqaaa-aaaan-qapwa-cai").await
 ///     );
 /// }
+/// ```
 pub async fn get_cycle_balance(pem_identity_path: &str, icsp_canister_id_text: &str) -> Nat {
     let canister_id = candid::Principal::from_text(icsp_canister_id_text).unwrap();
     let response_blob = build_agent(pem_identity_path)
@@ -135,26 +111,22 @@ pub async fn get_cycle_balance(pem_identity_path: &str, icsp_canister_id_text: &
 ///
 /// Example code :
 /// ``` no_run
-/// use ic_agent::ic_types::Principal;
-/// use isp_sdk::icsp::{self};
+/// use isp_sdk::icsp;
 ///
-/// async fn get_bucket_of_file(icsp_canister_id_text: &str, file_key: &str) -> Option<Principal> {
-///     icsp::get_bucket_of_file("identities/identity.pem", icsp_canister_id_text, file_key).await
-/// }
-///
-/// #[tokio::main]
-/// async fn main() {
+/// pub async fn get_bucket_of_file() {
 ///     println!(
 ///         "the file in bucekt:{:?}\n",
-///         get_bucket_of_file(
+///         icsp::get_bucket_of_file(
+///             "identities/identity.pem",
 ///             "4radi-oqaaa-aaaan-qapwa-cai",
-///             "14d37b8971e5c73a523de39e0682ba0c08df3a503c49f4f976fe282bc60abfef",
+///             "bf0efa3d-6639-4d62-a81d-c90974cc6925",
 ///         )
-///         .await
-///         .expect("no bucket have this file")
-///         .to_text()
+///             .await
+///             .expect("no bucket have this file")
+///             .to_text()
 ///     );
 /// }
+/// ```
 pub async fn get_bucket_of_file(
     pem_identity_path: &str,
     icsp_canister_id_text: &str,
@@ -175,30 +147,26 @@ pub async fn get_bucket_of_file(
 ///
 /// Example code :
 /// ```no_run
-/// use isp_sdk::icsp::{self, Buckets};
+/// use isp_sdk::icsp;
 ///
-/// async fn get_icsp_buckets(icsp_canister_id_text: &str) -> Option<Buckets> {
-///     icsp::get_icsp_buckets("identities/identity.pem", icsp_canister_id_text).await
-/// }
-///
-/// #[tokio::main]
-/// async fn main() {
-///     let response = get_icsp_buckets("4radi-oqaaa-aaaan-qapwa-cai").await;
+/// pub async fn get_icsp_buckets() {
+///     let response =
+///         icsp::get_icsp_buckets("identities/identity.pem", "5ekwd-fyaaa-aaaan-qaxlq-cai").await;
 ///     match response {
-///         Some(response_) => {
-///                 println!("old buckets:");
-///                 for i in &response_.old_buckets {
-///                     println!("{:?}", i.to_text());
-///                 }
-///                 println!("Live Buckets:");
-///                 for i in &response_.live_buckets {
-///                     println!(
-///                         "canister_id:{:?}, used_memory:{:?}",
-///                         i.canister_id.to_text(),
-///                         i.used_memory,
-///                     );
-///                 }
-///             },
+///         Some(response) => {
+///             println!("old buckets:");
+///             for i in &response.old_buckets {
+///                 println!("{:?}", i.to_text());
+///             }
+///             println!("Live Buckets:");
+///             for i in &response.live_buckets {
+///                 println!(
+///                     "canister_id:{:?}, used_memory:{:?}",
+///                     i.canister_id.to_text(),
+///                     i.used_memory,
+///                 );
+///             }
+///         }
 ///         None => println!("icsp do not have buckets"),
 ///     }
 /// }
@@ -222,20 +190,15 @@ pub async fn get_icsp_buckets(
 ///
 /// Example code :
 /// ``` no_run
-/// use ic_agent::ic_types::Principal;
 /// use isp_sdk::icsp;
-///
-/// async fn get_icsp_admins(icsp_canister_id_text: &str) -> Vec<Principal> {
-///     icsp::get_icsp_admins("identities/identity.pem", icsp_canister_id_text).await
-/// }
-///
-/// #[tokio::main]
-/// async fn main() {
+/// pub async fn get_icsp_admins() {
 ///     println!("icsp admins:");
-///     for i in &get_icsp_admins("4radi-oqaaa-aaaan-qapwa-cai").await {
+///     for i in &icsp::get_icsp_admins("identities/identity.pem", "4radi-oqaaa-aaaan-qapwa-cai").await
+///     {
 ///         println!("{:?}", i.to_text());
 ///     }
 /// }
+/// ```
 pub async fn get_icsp_admins(
     pem_identity_path: &str,
     icsp_canister_id_text: &str,
@@ -259,26 +222,19 @@ pub async fn get_icsp_admins(
 /// ``` no_run
 /// use isp_sdk::icsp;
 ///
-/// async fn store_files(
-///     folder_path: &str,
-///     icsp_canister_id_text: &str,
-///     is_http_open: bool,
-/// ) -> Vec<(String, String)> {
-///     icsp::store_files(
-///         "identities/identity.pem",
-///         folder_path,
-///         icsp_canister_id_text,
-///         is_http_open,
-///     ).await
-/// }
-///
-/// #[tokio::main]
-/// async fn main() {
+/// pub async fn store_files() {
 ///     // url format : icsp_canister_id.raw.ic0.app/'option location'/file_key
 ///     // icsp_canister_id.raw.ic0.app/ic/file_key
 ///     // icsp_canister_id.raw.ic0.app/ipfs/file_key
 ///     // icsp_canister_id.raw.ic0.app/ar/file_key
-///     for i in &store_files("source/", "4radi-oqaaa-aaaan-qapwa-cai", true).await {
+///     for i in &icsp::store_files(
+///         "identities/identity.pem",
+///         "source/",
+///         "4radi-oqaaa-aaaan-qapwa-cai",
+///         true,
+///     )
+///         .await
+///     {
 ///         println!("file_name:{:?},file_key:{:?}", i.0, i.1);
 ///     }
 /// }
@@ -334,27 +290,18 @@ pub async fn store_files(
 /// ``` no_run
 /// use isp_sdk::icsp;
 ///
-/// async fn store_file(
-///     file_path_str: &str,
-///     icsp_canister_id_text: &str,
-///     is_http_open: bool,
-/// ) -> (String, String) {
-///     icsp::store_file(
-///         "identities/identity.pem",
-///         file_path_str,
-///         icsp_canister_id_text,
-///         is_http_open,
-///     ).await
-/// }
-///
-/// #[tokio::main]
-/// async fn main() {
+/// pub async fn store_file() {
 ///     // url format : icsp_canister_id.raw.ic0.app/'option location'/file_key
 ///     // icsp_canister_id.raw.ic0.app/ic/file_key
 ///     // icsp_canister_id.raw.ic0.app/ipfs/file_key
 ///     // icsp_canister_id.raw.ic0.app/ar/file_key
-///     let respoonse =
-///         store_file("source/bitcoin.pdf", "4radi-oqaaa-aaaan-qapwa-cai", true).await;
+///     let respoonse = icsp::store_file(
+///         "identities/identity.pem",
+///         "source/bitcoin.pdf",
+///         "4radi-oqaaa-aaaan-qapwa-cai",
+///         true,
+///     )
+///         .await;
 ///     println!("file_name:{:?},file_key:{:?}", respoonse.0, respoonse.1);
 /// }
 /// ```
@@ -400,29 +347,20 @@ pub async fn store_file(
 /// ``` no_run
 /// use isp_sdk::icsp;
 ///
-/// async fn store_str(data: &str, icsp_canister_id_text: &str, is_http_open: bool) -> String {
-///     icsp::store_str(
-///         "identities/identity.pem",
-///         data,
-///         icsp_canister_id_text,
-///         is_http_open,
-///     ).await
-/// }
-///
-/// #[tokio::main]
-/// async fn main() {
+/// pub async fn store_str() {
 ///     // url format : icsp_canister_id.raw.ic0.app/'option location'/file_key
 ///     // icsp_canister_id.raw.ic0.app/ic/file_key
 ///     // icsp_canister_id.raw.ic0.app/ipfs/file_key
 ///     // icsp_canister_id.raw.ic0.app/ar/file_key
 ///     println!(
 ///         "store_str, file_key: {:?}",
-///         store_str(
+///         icsp::store_str(
+///             "identities/identity.pem",
 ///             "test_isp_sdk_store_str",
 ///             "4radi-oqaaa-aaaan-qapwa-cai",
 ///             true
 ///         )
-///         .await
+///             .await
 ///     );
 /// }
 /// ```
@@ -461,22 +399,18 @@ pub async fn store_str(
 /// Example code :
 /// ``` no_run
 /// use isp_sdk::icsp;
-/// use std::fs::OpenOptions;
 /// use std::io::Write;
-///
-/// async fn get_file(icsp_canister_id_text: &str, file_key: &str) -> (Vec<u8>, String) {
-///     icsp::get_file("identities/identity.pem", icsp_canister_id_text, file_key).await
-/// }
-///
-/// #[tokio::main]
-/// async fn main() {
-///     let response = get_file(
+/// pub async fn get_file() {
+///     let response = icsp::get_file(
+///         "identities/identity.pem",
 ///         "4radi-oqaaa-aaaan-qapwa-cai",
 ///         "3166112af0dcc940f8e7f2199a4200cfb5e2efb40796391201b8fe9e4ff7ca84",
 ///     )
-///     .await;
+///         .await;
+///
 ///     let mut file = std::fs::File::create("output/bitcoin.pdf").expect("create failed");
 ///     file.write_all(&response.0).expect("write failed");
+///
 ///     println!(
 ///         "file out put at folder output/ , file_type:{:?}",
 ///         response.1
@@ -538,20 +472,13 @@ pub async fn get_file(
 /// ``` no_run
 /// use isp_sdk::icsp;
 ///
-/// async fn add_icsp_admin(icsp_canister_id_text: &str, new_admin_text: &str) {
+/// pub async fn add_icsp_admin() {
 ///     icsp::add_icsp_admin(
 ///         "identities/identity.pem",
-///         icsp_canister_id_text,
-///         new_admin_text,
-///     ).await
-/// }
-///
-/// #[tokio::main]
-/// async fn main() {
-///     let response = add_icsp_admin(
 ///         "4radi-oqaaa-aaaan-qapwa-cai",
 ///         "bxgws-37y5d-tgmpr-hekbp-y3uxo-yicgs-fo7p3-ccnta-kidrz-74onh-pae",
-///     ).await;
+///     )
+///         .await
 /// }
 /// ```
 pub async fn add_icsp_admin(
@@ -575,20 +502,13 @@ pub async fn add_icsp_admin(
 /// ``` no_run
 /// use isp_sdk::icsp;
 ///
-/// async fn delete_icsp_admin(icsp_canister_id_text: &str, old_admin_text: &str) {
+/// pub async fn delete_icsp_admin() {
 ///     icsp::delete_icsp_admin(
 ///         "identities/identity.pem",
-///         icsp_canister_id_text,
-///         old_admin_text,
-///     ).await
-/// }
-///
-/// #[tokio::main]
-/// async fn main() {
-///     let response = delete_icsp_admin(
 ///         "4radi-oqaaa-aaaan-qapwa-cai",
 ///         "bxgws-37y5d-tgmpr-hekbp-y3uxo-yicgs-fo7p3-ccnta-kidrz-74onh-pae",
-///     ).await;
+///     )
+///         .await
 /// }
 /// ```
 pub async fn delete_icsp_admin(

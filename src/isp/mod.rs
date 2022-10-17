@@ -13,16 +13,10 @@ static ISP_CANISTER_ID_TEXT: &'static str = "p2pki-xyaaa-aaaan-qatua-cai";
 ///
 /// Example code :
 /// ``` no_run
-/// use ic_agent::ic_types::Principal;
 /// use isp_sdk::isp;
 ///
-/// async fn get_user_icsps() -> Vec<(String, Principal)> {
-///     isp::get_user_icsps("identities/identity.pem").await
-/// }
-///
-/// #[tokio::main]
-/// async fn main() {
-///     let response = get_user_icsps().await;
+/// pub async fn get_user_icsps() {
+///     let response = isp::get_user_icsps("identities/identity.pem").await;
 ///     for i in &response {
 ///         println!("icsp_name:{:?},icsp_canister_id:{:?}", i.0, i.1.to_text());
 ///     }
@@ -51,13 +45,11 @@ pub async fn get_user_icsps(pem_identity_path: &str) -> Vec<(String, candid::Pri
 /// ``` no_run
 /// use isp_sdk::isp;
 ///
-/// async fn get_sub_account() -> String {
-///     isp::get_sub_account("identities/identity.pem").await
-/// }
-///
-/// #[tokio::main]
-/// async fn main() {
-///     println!("subAccount:{:?}\n", get_sub_account().await);
+/// pub async fn get_sub_account() {
+///     println!(
+///         "SubAccount:{:?}\n",
+///         isp::get_sub_account("identities/identity.pem").await
+///     );
 /// }
 /// ```
 pub async fn get_sub_account(pem_identity_path: &str) -> String {
@@ -80,13 +72,11 @@ pub async fn get_sub_account(pem_identity_path: &str) -> String {
 /// ``` no_run
 /// use isp_sdk::isp;
 ///
-/// async fn get_icp_balance() -> u64 {
-///     isp::get_icp_balance("identities/identity.pem").await
-/// }
-///
-/// #[tokio::main]
-/// async fn main() {
-///     println!("icp balance:{:?}\n", get_icp_balance().await);
+/// pub async fn get_icp_balance() {
+///     println!(
+///         "icp balance:{:?}\n",
+///         isp::get_icp_balance("identities/identity.pem").await
+///     );
 /// }
 /// ```
 pub async fn get_icp_balance(pem_identity_path: &str) -> u64 {
@@ -107,19 +97,15 @@ pub async fn get_icp_balance(pem_identity_path: &str) -> u64 {
 ///
 /// Example code :
 /// ``` no_run
-/// use isp_sdk::isp::{self, TransferResult};
+/// use isp_sdk::isp;
 ///
-/// pub async fn transfer_out_icp(to: &str, amount: u64) -> TransferResult {
-///     isp::transfer_out_icp("identities/identity.pem", to, amount).await
-/// }
-///
-/// #[tokio::main]
-/// async fn main() {
+/// pub async fn transfer_out_icp() {
 ///     println!(
 ///         "transfer out icp result:{:?}\n",
-///         transfer_out_icp(
+///         isp::transfer_out_icp(
+///             "identities/identity.pem",
 ///             "3eee9b4671b8fde5a501288d74d21ee93042dc202104fa35051563ae35d24f2f",
-///             5000000 as u64,
+///             5000000 as u64
 ///         )
 ///         .await
 ///     );
@@ -141,17 +127,12 @@ pub async fn transfer_out_icp(pem_identity_path: &str, to: &str, amount: u64) ->
 ///
 /// Example code :
 /// ``` no_run
-/// use ic_agent::ic_types::Principal;
+/// use candid::Principal;
 /// use isp_sdk::isp;
 ///
-/// async fn get_isp_admins() -> Vec<Principal> {
-///     isp::get_isp_admins("identities/identity.pem").await
-/// }
-///
-/// #[tokio::main]
-/// async fn main() {
+/// pub async fn get_isp_admins() {
 ///     println!("isp admins:");
-///     for i in &get_isp_admins().await {
+///     for i in &isp::get_isp_admins("identities/identity.pem").await {
 ///         println!("{:?}", Principal::to_text(i));
 ///     }
 /// }
@@ -184,19 +165,16 @@ pub async fn get_isp_admins(pem_identity_path: &str) -> Vec<candid::Principal> {
 ///
 /// Example code :
 /// ``` no_run
-/// use isp_sdk::isp::{self, CreateICSPResult, BurnResult};
+/// use isp_sdk::isp::{self, CreateICSPResult};
 ///
-/// async fn create_icsp(icsp_name: &str, icp_to_create_amount: u64, xtc_to_topup_amount: u64,) -> (CreateICSPResult, Option<BurnResult>) {
-///     isp::create_icsp("identities/identity.pem", icsp_name, icp_to_create_amount, xtc_to_topup_amount).await
-/// }
-///
-/// #[tokio::main]
-/// async fn main() {
-///     let response = create_icsp(
+/// pub async fn create_icsp() {
+///     let response = isp::create_icsp(
+///         "identities/identity.pem",
 ///         "icsp-1",
-///         20_000_000 as u64,
-///         10_000_000_000_000 as u64 - 2_000_000_000 as u64,
-///     ).await;
+///         15_000_000 as u64,
+///         5_000_000_000_000 as u64 - 2_000_000_000 as u64,
+///     )
+///         .await;
 ///     match response.0 {
 ///         CreateICSPResult::ok(canister_id) => {
 ///             println!("create icsp success: {:?}", canister_id.to_text());
@@ -270,24 +248,23 @@ pub async fn create_icsp(
 ///
 /// Example code :
 /// ``` no_run
-/// use ic_agent::ic_types::Principal;
-/// use isp_sdk::isp::{self, TopUpArgs, TopUpResult};
+/// use candid::Principal;
+/// use isp_sdk::isp::{self, TopUpArgs};
 ///
-/// async fn top_up_icsp(args: TopUpArgs) -> TopUpResult {
-///     isp::top_up_icsp("identities/identity.pem", args).await
-/// }
-///
-/// #[tokio::main]
-/// async fn main() {
-///     println!(
-///         "topup icsp result:{:?}\n",
-///         top_up_icsp(TopUpArgs {
+/// pub async fn top_up_icsp() {
+///   println!(
+///      "topup icsp result:{:?}\n",
+///      isp::top_up_icsp(
+///          "identities/identity.pem",
+///          TopUpArgs {
 ///             icsp_canisterId: Principal::from_text("xk2my-yqaaa-aaaal-abdwa-cai").unwrap(),
-///             icp_amount: 5_000_000 as u64,
-///         })
-///         .await
-///     );
+///              icp_amount: 5_000_000 as u64,
+///          }
+///      )
+///           .await
+///   );
 /// }
+/// ```
 pub async fn top_up_icsp(pem_identity_path: &str, args: TopUpArgs) -> TopUpResult {
     let canister_id = candid::Principal::from_text(ISP_CANISTER_ID_TEXT).unwrap();
     let response_blob = build_agent(pem_identity_path)
@@ -325,24 +302,23 @@ pub enum BurnError {
 ///
 /// Example code :
 /// ``` no_run
-/// use ic_agent::ic_types::Principal;
-/// use isp_sdk::isp::{self, BurnArgs, BurnResult};
+/// use isp_sdk::isp::{self, BurnArgs};
+/// use candid::Principal;
 ///
-/// async fn top_up_icsp_with_xtc(args: BurnArgs) -> BurnResult {
-///     isp::top_up_icsp_with_xtc("identities/identity.pem", args).await
-/// }
-///
-/// #[tokio::main]
-/// async fn main() {
-///     println!(
-///         "topup icsp with XTC result:{:?}\n",
-///         top_up_icsp_with_xtc(BurnArgs {
+/// pub async fn top_up_icsp_with_xtc() {
+///   println!(
+///       "topup icsp with XTC result:{:?}\n",
+///      isp::top_up_icsp_with_xtc(
+///         "identities/identity.pem",
+///         BurnArgs {
 ///             canister_id: Principal::from_text("hf34l-eyaaa-aaaan-qav5q-cai").unwrap(),
-///             amount: 1_000_000_000_000 as u64 - 2_000_000_000 as u64,
-///         })
-///         .await
-///     );
+///            amount: 1_000_000_000_000 as u64 - 2_000_000_000 as u64,
+///         }
+///     )
+///          .await
+///  );
 /// }
+/// ```
 pub async fn top_up_icsp_with_xtc(pem_identity_path: &str, args: BurnArgs) -> BurnResult {
     let canister_id = candid::Principal::from_text("aanaa-xaaaa-aaaah-aaeiq-cai").unwrap();
     let response_blob = build_agent(pem_identity_path)

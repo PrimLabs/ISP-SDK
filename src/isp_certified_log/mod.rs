@@ -11,15 +11,12 @@ pub use icsp_certified_log_backend_did::{Buckets, StoreLog};
 ///
 /// Example code :
 /// ```no_run
-/// use isp_sdk::isp_certified_log::{self, Buckets};
+/// use isp_sdk::isp_certified_log;
 ///
-/// async fn get_buckets(icsp_log_canister_id_text: &str) -> Option<Buckets> {
-///     isp_certified_log::get_buckets("identities/identity.pem", icsp_log_canister_id_text).await
-/// }
-///
-/// #[tokio::main]
-/// async fn main() {
-///     let response = get_buckets("4radi-oqaaa-aaaan-qapwa-cai").await;
+/// pub async fn get_buckets() {
+///     let response =
+///         isp_certified_log::get_buckets("identities/identity.pem", "4radi-oqaaa-aaaan-qapwa-cai")
+///             .await;
 ///     match response {
 ///         Some(response) => {
 ///             println!("old buckets:");
@@ -27,7 +24,10 @@ pub use icsp_certified_log_backend_did::{Buckets, StoreLog};
 ///                 println!("{:?}", i.to_text());
 ///             }
 ///             println!("Live Buckets:");
-///             println!("canister_id:{:?}, used_memory:{:?}",response.live_buckets.bucket_id, response.live_buckets.used_memory,);
+///             println!(
+///                 "canister_id:{:?}, used_memory:{:?}",
+///                 response.live_buckets.bucket_id, response.live_buckets.used_memory,
+///             );
 ///         }
 ///         None => println!("icsp do not have buckets"),
 ///     }
@@ -54,14 +54,12 @@ pub async fn get_buckets(
 /// ```no_run
 /// use isp_sdk::isp_certified_log;
 ///
-/// async fn get_log_num(icsp_log_canister_id_text: &str) -> u128 {
-///     isp_certified_log::get_log_num("identities/identity.pem", icsp_log_canister_id_text).await
-/// }
-///
-/// #[tokio::main]
-/// async fn main() {
-///     let response = get_log_num("4radi-oqaaa-aaaan-qapwa-cai").await;
-///     println!("log num:{:?}", response);
+/// pub async fn get_log_num() {
+///     println!(
+///         "log num:{:?}",
+///         isp_certified_log::get_log_num("identities/identity.pem", "4radi-oqaaa-aaaan-qapwa-cai")
+///             .await
+///     );
 /// }
 /// ```
 pub async fn get_log_num(pem_identity_path: &str, icsp_log_canister_id_text: &str) -> u128 {
@@ -80,24 +78,18 @@ pub async fn get_log_num(pem_identity_path: &str, icsp_log_canister_id_text: &st
 ///
 /// Example code :
 /// ```no_run
-/// use isp_sdk::isp_certified_log::{self, CertifiedLog};
+/// use isp_sdk::isp_certified_log;
 ///
-/// async fn get_logs(icsp_log_canister_id_text: &str, start: u128, end: u128) -> Option<Vec<CertifiedLog>> {
-///     isp_certified_log::get_logs(
+/// pub async fn get_logs() {
+///     let response = isp_certified_log::get_logs(
 ///         "identities/identity.pem",
-///         icsp_log_canister_id_text,
-///         start,
-///         end,
-///     ).await
-/// }
-///
-/// async fn get_log_num(icsp_log_canister_id_text: &str) -> u128 {
-///     isp_certified_log::get_log_num("identities/identity.pem", icsp_log_canister_id_text).await
-/// }
-///
-/// #[tokio::main]
-/// async fn main() {
-///     let response = get_logs("4radi-oqaaa-aaaan-qapwa-cai", 0, get_log_num("4radi-oqaaa-aaaan-qapwa-cai").await - 1).await;
+///         "4radi-oqaaa-aaaan-qapwa-cai",
+///         0,
+///         isp_certified_log::get_log_num("identities/identity.pem", "4radi-oqaaa-aaaan-qapwa-cai")
+///             .await
+///             - 1,
+///     )
+///         .await;
 ///     match response {
 ///         Some(response) => println!("{:?}", response),
 ///         None => println!("no logs"),
@@ -155,17 +147,13 @@ pub async fn get_logs(
 /// Example code :
 /// ```no_run
 /// use isp_sdk::isp_certified_log;
-/// use candid::Principal;
 ///
-/// async fn get_admins(icsp_log_canister_id_text: &str) -> Vec<Principal> {
-///     isp_certified_log::get_admins("identities/identity.pem", icsp_log_canister_id_text).await
-/// }
-///
-/// #[tokio::main]
-/// async fn main() {
-///     let response = get_admins("4radi-oqaaa-aaaan-qapwa-cai").await;
+/// pub async fn get_admins() {
 ///     println!("admins");
-///     for i in &response {
+///     for i in
+///     &isp_certified_log::get_admins("identities/identity.pem", "4radi-oqaaa-aaaan-qapwa-cai")
+///         .await
+///     {
 ///         println!("{:?}", i.to_text());
 ///     }
 /// }
@@ -191,18 +179,15 @@ pub async fn get_admins(
 /// ```no_run
 /// use isp_sdk::isp_certified_log::{self, StoreLog};
 ///
-/// async fn store(icsp_log_canister_id_text: &str, args: StoreLog) {
-///     isp_certified_log::store("identities/identity.pem", icsp_log_canister_id_text, args).await
-/// }
-///
-/// #[tokio::main]
-/// async fn main() {
-///     let response = store(
+/// pub async fn store() {
+///     isp_certified_log::store(
+///         "identities/identity.pem",
 ///         "4radi-oqaaa-aaaan-qapwa-cai",
 ///         StoreLog {
 ///             context: "test".to_string(),
-///         }
-///     ).await;
+///         },
+///     )
+///         .await;
 /// }
 /// ```
 pub async fn store(pem_identity_path: &str, icsp_log_canister_id_text: &str, args: StoreLog) {
@@ -240,20 +225,13 @@ pub async fn update_bucket_canister_controller(
 /// ```no_run
 /// use isp_sdk::isp_certified_log;
 ///
-/// async fn add_admin(icsp_log_canister_id_text: &str, new_admin_text: &str) {
+/// pub async fn add_admin() {
 ///     isp_certified_log::add_admin(
 ///         "identities/identity.pem",
-///         icsp_log_canister_id_text,
-///         new_admin_text,
-///     ).await
-/// }
-///
-/// #[tokio::main]
-/// async fn main() {
-///     let response = add_admin(
 ///         "4radi-oqaaa-aaaan-qapwa-cai",
 ///         "bxgws-37y5d-tgmpr-hekbp-y3uxo-yicgs-fo7p3-ccnta-kidrz-74onh-pae",
-///     ).await;
+///     )
+///         .await;
 /// }
 /// ```
 pub async fn add_admin(
@@ -279,20 +257,13 @@ pub async fn add_admin(
 /// ```no_run
 /// use isp_sdk::isp_certified_log;
 ///
-/// async fn delete_admin(icsp_log_canister_id_text: &str, old_admin_text: &str) {
-///     isp_certified_log::add_admin(
+/// pub async fn delete_admin() {
+///     isp_certified_log::delete_admin(
 ///         "identities/identity.pem",
-///         icsp_log_canister_id_text,
-///         old_admin_text,
-///     ).await
-/// }
-///
-/// #[tokio::main]
-/// async fn main() {
-///     let response = delete_admin(
 ///         "4radi-oqaaa-aaaan-qapwa-cai",
 ///         "bxgws-37y5d-tgmpr-hekbp-y3uxo-yicgs-fo7p3-ccnta-kidrz-74onh-pae",
-///     ).await;
+///     )
+///         .await;
 /// }
 /// ```
 pub async fn delete_admin(
