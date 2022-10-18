@@ -15,7 +15,7 @@ name = "isp_sdk"
 
 [dependencies]
 ic-cdk = "0.6.0"
-ic-agent = "0.21.0"
+ic-agent = "0.22.0"
 candid = "0.8.2"
 serde = "1.0.144"
 garcon = "0.2.3"

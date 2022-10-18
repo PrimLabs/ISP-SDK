@@ -11,7 +11,8 @@ static ISP_CANISTER_ID_TEXT: &'static str = "p2pki-xyaaa-aaaan-qatua-cai";
 
 /// Get icsps of user, return Vec<(icsp_name, icsp_canister_id)>
 ///
-/// Example code :
+/// # Examples
+///
 /// ``` no_run
 /// use isp_sdk::isp;
 ///
@@ -41,7 +42,8 @@ pub async fn get_user_icsps(pem_identity_path: &str) -> Vec<(String, candid::Pri
 ///
 /// You should transfer icp to this subAccount in order to create icsp canister
 ///
-/// Example code :
+/// # Examples
+///
 /// ``` no_run
 /// use isp_sdk::isp;
 ///
@@ -68,7 +70,8 @@ pub async fn get_sub_account(pem_identity_path: &str) -> String {
 ///
 /// The balance is e8s
 ///
-/// Example code :
+/// # Examples
+///
 /// ``` no_run
 /// use isp_sdk::isp;
 ///
@@ -95,7 +98,8 @@ pub async fn get_icp_balance(pem_identity_path: &str) -> u64 {
 ///
 /// The amount is e8s
 ///
-/// Example code :
+/// # Examples
+///
 /// ``` no_run
 /// use isp_sdk::isp;
 ///
@@ -125,7 +129,8 @@ pub async fn transfer_out_icp(pem_identity_path: &str, to: &str, amount: u64) ->
 
 /// Get admins of isp
 ///
-/// Example code :
+/// # Examples
+///
 /// ``` no_run
 /// use candid::Principal;
 /// use isp_sdk::isp;
@@ -163,7 +168,8 @@ pub async fn get_isp_admins(pem_identity_path: &str) -> Vec<candid::Principal> {
 /// The XTC is e12s.
 /// 1 T XTC(Cycles) should be 1_000_000_000_000
 ///
-/// Example code :
+/// # Examples
+///
 /// ``` no_run
 /// use isp_sdk::isp::{self, CreateICSPResult};
 ///
@@ -246,7 +252,8 @@ pub async fn create_icsp(
 
 /// Transform icp to cycles and top_up tp icsp
 ///
-/// Example code :
+/// # Examples
+///
 /// ``` no_run
 /// use candid::Principal;
 /// use isp_sdk::isp::{self, TopUpArgs};
@@ -300,7 +307,8 @@ pub enum BurnError {
 ///
 /// You must ensure you pem Account have sufficient [XTC](https://github.com/Psychedelic/dank/tree/main/xtc)
 ///
-/// Example code :
+/// # Examples
+///
 /// ``` no_run
 /// use isp_sdk::isp::{self, BurnArgs};
 /// use candid::Principal;

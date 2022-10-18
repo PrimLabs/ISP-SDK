@@ -16,7 +16,7 @@ ISP（IC storage protocol）是一个构建于IC上的可扩展的存储协议�
 1. Make sure you have enough ICP in your ISP's subAccount to create an ICSP canister
 2. Make sure you have enough [XTC](https://github.com/Psychedelic/dank/tree/develop/xtc) in your pem account to recharge Cycles to ICSP canister, which you can find at [sonic](https://app.sonic.ooo/swap) to exchange
 3. Call ``isp_sdk::isp::create_icsp`` to create your ICSP
-4. call ``icsp::store_file`` to store the file
+4. call ``isp_sdk::icsp::store_file`` to store the file
 5. Call other interfaces to complete related operations
 
 ### Chinese
@@ -24,11 +24,11 @@ ISP（IC storage protocol）是一个构建于IC上的可扩展的存储协议�
 1. 确保你在ISP的子账户(subAccount)有足够的ICP用来创建ICSP canister 
 2. 确保你的pem的账户有足够的[XTC](https://github.com/Psychedelic/dank/tree/develop/xtc)来给ICSP canister充值Cycles，你可以在[sonic](https://app.sonic.ooo/swap)进行兑换
 3. 调用 ``isp_sdk::isp::create_icsp``来创建你的ICSP
-4. 调用 ``icsp::store_file``来储存文件
+4. 调用 ``isp_sdk::icsp::store_file``来储存文件
 5. 调用 其他接口来完成相关操作
 
 
 ## Architecture
-![](http://scf3f-cyaaa-aaaal-aas3q-cai.raw.ic0.app/fk/iQVVEdXicmv88nJSwmWnc)
+![](https://scf3f-cyaaa-aaaal-aas3q-cai.raw.ic0.app/fk/VOhoOCto-8SRSfYZ1jKhE)
 
 

@@ -12,7 +12,8 @@ const UPDATE_SIZE: usize = 1992288;
 
 /// Get all ic files 's key from user 's icsp
 ///
-/// Example code :
+/// # Examples
+///
 /// ``` no_run
 /// use isp_sdk::icsp;
 ///
@@ -40,7 +41,8 @@ pub async fn get_all_ic_file_key(
 
 /// Get file's information
 ///
-/// Example code :
+/// # Examples
+///
 /// ``` no_run
 /// use isp_sdk::icsp;
 /// pub async fn get_file_info() {
@@ -84,7 +86,8 @@ pub async fn get_file_info(
 ///
 /// The cycle balance is e12s
 ///
-/// Example code :
+/// # Examples
+///
 /// ``` no_run
 /// use isp_sdk::icsp;
 ///
@@ -109,7 +112,8 @@ pub async fn get_cycle_balance(pem_identity_path: &str, icsp_canister_id_text: &
 
 /// Get the bucket where the file is stored
 ///
-/// Example code :
+/// # Examples
+///
 /// ``` no_run
 /// use isp_sdk::icsp;
 ///
@@ -145,7 +149,8 @@ pub async fn get_bucket_of_file(
 
 /// Get buckets of user's icsp
 ///
-/// Example code :
+/// # Examples
+///
 /// ```no_run
 /// use isp_sdk::icsp;
 ///
@@ -188,7 +193,8 @@ pub async fn get_icsp_buckets(
 
 /// Get icsp 's admins
 ///
-/// Example code :
+/// # Examples
+///
 /// ``` no_run
 /// use isp_sdk::icsp;
 /// pub async fn get_icsp_admins() {
@@ -218,7 +224,8 @@ pub async fn get_icsp_admins(
 ///
 /// If http open,url format: icsp_canister_id.raw.ic0.app/ic/file_key
 ///
-/// Example code :
+/// # Examples
+///
 /// ``` no_run
 /// use isp_sdk::icsp;
 ///
@@ -286,7 +293,8 @@ pub async fn store_files(
 ///
 /// If http open,url format: icsp_canister_id.raw.ic0.app/ic/file_key
 ///
-/// Example code :
+/// # Examples
+///
 /// ``` no_run
 /// use isp_sdk::icsp;
 ///
@@ -343,7 +351,8 @@ pub async fn store_file(
 ///
 /// If http open,url format: icsp_canister_id.raw.ic0.app/ic/file_key
 ///
-/// Example code :
+/// # Examples
+///
 /// ``` no_run
 /// use isp_sdk::icsp;
 ///
@@ -396,7 +405,8 @@ pub async fn store_str(
 
 /// Get file from icsp, return (data, file_type)
 ///
-/// Example code :
+/// # Examples
+///
 /// ``` no_run
 /// use isp_sdk::icsp;
 /// use std::io::Write;
@@ -468,7 +478,8 @@ pub async fn get_file(
 
 /// Add admin of icsp
 ///
-/// Example code :
+/// # Examples
+///
 /// ``` no_run
 /// use isp_sdk::icsp;
 ///
@@ -498,7 +509,8 @@ pub async fn add_icsp_admin(
 
 /// Delete admin of icsp
 ///
-/// Example code :
+/// # Examples
+///
 /// ``` no_run
 /// use isp_sdk::icsp;
 ///

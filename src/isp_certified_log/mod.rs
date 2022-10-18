@@ -9,7 +9,8 @@ pub use icsp_certified_log_backend_did::{Buckets, StoreLog};
 
 /// Get buckets of user's icsp_certified_log
 ///
-/// Example code :
+/// # Examples
+///
 /// ```no_run
 /// use isp_sdk::isp_certified_log;
 ///
@@ -50,7 +51,8 @@ pub async fn get_buckets(
 
 /// Get the number of certified logs
 ///
-/// Example code :
+/// # Examples
+///
 /// ```no_run
 /// use isp_sdk::isp_certified_log;
 ///
@@ -76,7 +78,8 @@ pub async fn get_log_num(pem_identity_path: &str, icsp_log_canister_id_text: &st
 
 /// Get logs from start to end (0 ... n-1)
 ///
-/// Example code :
+/// # Examples
+///
 /// ```no_run
 /// use isp_sdk::isp_certified_log;
 ///
@@ -144,7 +147,8 @@ pub async fn get_logs(
 
 /// Get icsp_certified_log admins
 ///
-/// Example code :
+/// # Examples
+///
 /// ```no_run
 /// use isp_sdk::isp_certified_log;
 ///
@@ -175,7 +179,8 @@ pub async fn get_admins(
 
 /// Store a certified log
 ///
-/// Example code :
+/// # Examples
+///
 /// ```no_run
 /// use isp_sdk::isp_certified_log::{self, StoreLog};
 ///
@@ -221,7 +226,8 @@ pub async fn update_bucket_canister_controller(
 
 /// Add a icsp_certified_log admin
 ///
-/// Example code :
+/// # Examples
+///
 /// ```no_run
 /// use isp_sdk::isp_certified_log;
 ///
@@ -253,7 +259,8 @@ pub async fn add_admin(
 
 /// Delete a icsp_certified_log admin
 ///
-/// Example code :
+/// # Examples
+///
 /// ```no_run
 /// use isp_sdk::isp_certified_log;
 ///
