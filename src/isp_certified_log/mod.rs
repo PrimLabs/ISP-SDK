@@ -207,22 +207,22 @@ pub async fn store(pem_identity_path: &str, icsp_log_canister_id_text: &str, arg
     response
 }
 
-pub async fn update_bucket_canister_controller(
-    pem_identity_path: &str,
-    icsp_log_canister_id_text: &str,
-    bucket_canister_id: candid::Principal,
-    contoller: Vec<candid::Principal>,
-) -> bool {
-    let canister_id = candid::Principal::from_text(icsp_log_canister_id_text).unwrap();
-    let response_blob = build_agent(pem_identity_path)
-        .update(&canister_id, "updateBucketCanisterController")
-        .with_arg(Encode!(&bucket_canister_id, &contoller).expect("encode piece failed"))
-        .call_and_wait(get_waiter())
-        .await
-        .expect("response error");
-    let response = Decode!(&response_blob, bool).unwrap();
-    response
-}
+// pub async fn update_bucket_canister_controller(
+//     pem_identity_path: &str,
+//     icsp_log_canister_id_text: &str,
+//     bucket_canister_id: candid::Principal,
+//     contoller: Vec<candid::Principal>,
+// ) -> bool {
+//     let canister_id = candid::Principal::from_text(icsp_log_canister_id_text).unwrap();
+//     let response_blob = build_agent(pem_identity_path)
+//         .update(&canister_id, "updateBucketCanisterController")
+//         .with_arg(Encode!(&bucket_canister_id, &contoller).expect("encode piece failed"))
+//         .call_and_wait(get_waiter())
+//         .await
+//         .expect("response error");
+//     let response = Decode!(&response_blob, bool).unwrap();
+//     response
+// }
 
 /// Add a icsp_certified_log admin
 ///
