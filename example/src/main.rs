@@ -74,6 +74,8 @@ async fn run_test(args: Config) {
             test_isp::get_all_ic_file_key().await;
         } else if args.test_function == "get_file_info".to_string() {
             test_isp::get_file_info().await;
+        } else if args.test_function == "delete_file".to_string() {
+            test_isp::delete_file().await;
         }
     } else if args.test_module == "isp_certified_log" {
         println!("test_module : {:?}", args.test_module);

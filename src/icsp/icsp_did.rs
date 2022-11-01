@@ -3,15 +3,15 @@ use ic_cdk::api::call::CallResult;
 use ic_cdk::export::candid::{CandidType, Deserialize};
 
 #[derive(CandidType, Deserialize, Debug)]
-pub struct LiveBucketExt {
+pub struct BucketStatusExt {
     pub used_memory: Nat,
     pub canister_id: Principal,
 }
 
 #[derive(CandidType, Deserialize, Debug)]
 pub struct Buckets {
-    pub old_buckets: Vec<Principal>,
-    pub live_buckets: Vec<LiveBucketExt>,
+    pub live_buckets: Vec<BucketStatusExt>,
+    pub dead_buckets: Vec<BucketStatusExt>,
 }
 
 #[derive(CandidType, Deserialize, Debug)]
@@ -38,10 +38,10 @@ pub struct StoreArgs {
 
 #[derive(CandidType, Deserialize, Debug)]
 struct OtherFile {
-    file_location: FileLocation,
-    file_key: String,
-    file_url: String,
-    file_type: String,
+    pub file_location: FileLocation,
+    pub file_key: String,
+    pub file_url: String,
+    pub file_type: String,
 }
 
 #[derive(CandidType, Deserialize, Debug)]
@@ -78,7 +78,11 @@ impl SERVICE {
         ic_cdk::call(self.0, "recordFile", (other_file,)).await
     }
 
-    pub async fn init(&self) -> CallResult<(LiveBucketExt,)> {
+    pub async fn delete(&self, arg0: String) -> CallResult<()> {
+        ic_cdk::call(self.0, "delete", (arg0,)).await
+    }
+
+    pub async fn init(&self) -> CallResult<(BucketStatusExt,)> {
         ic_cdk::call(self.0, "init", ()).await
     }
 

@@ -4,7 +4,7 @@ version = 3
 
 [[package]]
 name = "ISP-SDK"
-version = "0.1.6"
+version = "0.1.7"
 dependencies = [
  "candid",
  "garcon",
@@ -774,9 +774,9 @@ dependencies = [
 
 [[package]]
 name = "ic-agent"
-version = "0.21.0"
+version = "0.22.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "699755970b44fbc3fd97ed75c584bd764fc42a37db8bacf9fed909857750d770"
+checksum = "261a977b6cc35db6ee84195148f5e8307ffc1bbcb1895a221fe16d0fb097a427"
 dependencies = [
  "async-trait",
  "base32",

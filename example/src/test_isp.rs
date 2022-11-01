@@ -80,9 +80,13 @@ pub async fn get_icsp_buckets() {
         icsp::get_icsp_buckets("identities/identity.pem", "5ekwd-fyaaa-aaaan-qaxlq-cai").await;
     match response {
         Some(response) => {
-            println!("old buckets:");
-            for i in &response.old_buckets {
-                println!("{:?}", i.to_text());
+            println!("dead buckets:");
+            for i in &response.dead_buckets {
+                println!(
+                    "canister_id: {:?}; used_memory: {:?}",
+                    i.canister_id.to_text(),
+                    i.used_memory
+                );
             }
             println!("Live Buckets:");
             for i in &response.live_buckets {
@@ -129,12 +133,22 @@ pub async fn store_file() {
     // icsp_canister_id.raw.ic0.app/ar/file_key
     let respoonse = icsp::store_file(
         "identities/identity.pem",
-        "source/bitcoin.pdf",
-        "4radi-oqaaa-aaaan-qapwa-cai",
+        "source/a.jpeg",
+        "5ekwd-fyaaa-aaaan-qaxlq-cai",
         true,
     )
     .await;
     println!("file_name:{:?},file_key:{:?}", respoonse.0, respoonse.1);
+}
+
+pub async fn delete_file() {
+    let _respoonse = icsp::delete_file(
+        "identities/identity.pem",
+        "5ekwd-fyaaa-aaaan-qaxlq-cai",
+        "eb76d54c-c79e-4a95-beea-d771138d36ee",
+    )
+    .await;
+    println!("complete delete file func");
 }
 
 pub async fn store_str() {
@@ -232,7 +246,7 @@ pub async fn get_cycle_balance() {
 pub async fn get_all_ic_file_key() {
     println!(
         "get all ic file key result: {:?}",
-        icsp::get_all_ic_file_key("identities/identity.pem", "4radi-oqaaa-aaaan-qapwa-cai").await
+        icsp::get_all_ic_file_key("identities/identity.pem", "5ekwd-fyaaa-aaaan-qaxlq-cai").await
     );
 }
 

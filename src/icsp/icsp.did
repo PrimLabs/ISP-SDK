@@ -1,6 +1,7 @@
 type icsp = 
  service {
    addAdmin: (principal) -> ();
+   delete: (text) -> ();
    deleteAdmin: (principal) -> ();
    getAdmins: () -> (vec principal) query;
    getAllArFileKey: () -> (vec text) query;
@@ -12,13 +13,13 @@ type icsp =
    getFileInfo: (text) -> (opt FileBufExt) query;
    getOtherFile: (text, FileLocation__1) -> (opt OtherFile) query;
    http_request: (HttpRequest) -> (HttpResponse) query;
-   init: () -> (LiveBucketExt);
+   init: () -> (BucketStatusExt);
    recordFile: (OtherFile) -> ();
    store: (StoreArgs) -> ();
    topUpBucket: (nat) -> ();
    wallet_receive: () -> (nat);
  };
-type StreamingCallbackHttpResponse =
+type StreamingCallbackHttpResponse = 
  record {
    body: blob;
    token: opt CallbackToken;
@@ -31,7 +32,7 @@ type StreamStrategy = variant {
                              (StreamingCallbackHttpResponse) query;
                            token: CallbackToken;
                          };};
-type StoreArgs =
+type StoreArgs = 
  record {
    file_type: text;
    index: nat;
@@ -41,53 +42,43 @@ type StoreArgs =
    total_size: nat64;
    value: blob;
  };
-type OtherFile =
+type OtherFile = 
  record {
    file_key: text;
    file_location: FileLocation;
    file_type: text;
    file_url: text;
  };
-type LiveBucketExt__1 =
- record {
-   canister_id: principal;
-   used_memory: nat;
- };
-type LiveBucketExt =
- record {
-   canister_id: principal;
-   used_memory: nat;
- };
-type HttpResponse =
+type HttpResponse = 
  record {
    body: blob;
    headers: vec HeaderField;
    status_code: nat16;
    streaming_strategy: opt StreamStrategy;
  };
-type HttpRequest =
+type HttpRequest = 
  record {
    body: blob;
    headers: vec HeaderField;
    method: text;
    url: text;
  };
-type HeaderField =
+type HeaderField = 
  record {
    text;
    text;
  };
-type FileLocation__1 =
+type FileLocation__1 = 
  variant {
    Arweave;
    IPFS;
  };
-type FileLocation =
+type FileLocation = 
  variant {
    Arweave;
    IPFS;
  };
-type FileBufExt =
+type FileBufExt = 
  record {
    bucket_id: principal;
    file_type: text;
@@ -105,7 +96,17 @@ type CallbackToken =
  };
 type Buckets = 
  record {
-   live_buckets: vec LiveBucketExt__1;
-   old_buckets: vec principal;
+   dead_buckets: vec BucketStatusExt__1;
+   live_buckets: vec BucketStatusExt__1;
+ };
+type BucketStatusExt__1 = 
+ record {
+   canister_id: principal;
+   used_memory: nat;
+ };
+type BucketStatusExt = 
+ record {
+   canister_id: principal;
+   used_memory: nat;
  };
 service : () -> icsp

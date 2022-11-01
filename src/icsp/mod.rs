@@ -1,4 +1,4 @@
-use candid::{CandidType, Decode, Encode, Nat};
+use candid::{Decode, Encode, Nat};
 use garcon::Delay;
 use ic_agent::agent::http_transport::ReqwestHttpReplicaV2Transport;
 use ic_agent::{identity::Secp256k1Identity, Agent};
@@ -6,9 +6,9 @@ use std::fs::{self};
 use std::path::Path;
 use uuid::Uuid;
 mod icsp_did;
-pub use icsp_did::{Buckets, FileBufExt, LiveBucketExt, StoreArgs};
+pub use icsp_did::{Buckets, FileBufExt, StoreArgs};
 
-const UPDATE_SIZE: usize = 1992288;
+const UPDATE_SIZE: usize = 2031616;
 
 /// Get all ic files 's key from user 's icsp
 ///
@@ -347,6 +347,34 @@ pub async fn store_file(
     (file_name, file_key.clone())
 }
 
+/// Delete file by file_key
+///
+/// # Examples
+///
+/// ``` no_run
+/// use isp_sdk::icsp;
+///
+/// pub async fn delete_file() {
+///     let _respoonse = icsp::delete_file(
+///         "identities/identity.pem",
+///         "5ekwd-fyaaa-aaaan-qaxlq-cai",
+///         "64b9eb91-feaa-43f0-aa39-3040c035c5bb",
+///     )
+///         .await;
+///     println!("complete delete file func");
+/// }
+/// ```
+pub async fn delete_file(pem_identity_path: &str, icsp_canister_id_text: &str, file_key: &str) {
+    let canister_id = candid::Principal::from_text(icsp_canister_id_text).unwrap();
+    let agent = build_agent(pem_identity_path);
+    let _ = agent
+        .update(&canister_id, "delete")
+        .with_arg(Encode!(&file_key.to_string()).expect("encode piece failed"))
+        .call_and_wait(get_waiter())
+        .await
+        .expect("response error");
+}
+
 /// Store str data
 ///
 /// If http open,url format: icsp_canister_id.raw.ic0.app/ic/file_key
@@ -393,7 +421,7 @@ pub async fn store_str(
         is_http_open: is_http_open.clone(),
         index: Nat::from(0),
     };
-    let _response_blob = build_agent(pem_identity_path)
+    let _ = build_agent(pem_identity_path)
         .update(&canister_id, "store")
         .with_arg(Encode!(&put).expect("encode piece failed"))
         .call_and_wait(get_waiter())
