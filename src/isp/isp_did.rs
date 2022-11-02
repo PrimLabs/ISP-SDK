@@ -73,7 +73,7 @@ impl SERVICE {
     }
 
     pub async fn get_icp_balance(&self) -> CallResult<(u64,)> {
-        ic_cdk::call(self.0, "getICPBalance", ()).await
+        ic_cdk::call(self.0, "getUserSubAccountICPBalance", ()).await
     }
 
     pub async fn transfer_out_icp(
@@ -81,7 +81,7 @@ impl SERVICE {
         to: AccountIdentifier,
         amount: u64,
     ) -> CallResult<(TransferResult,)> {
-        ic_cdk::call(self.0, "transferOutICP", (to, amount)).await
+        ic_cdk::call(self.0, "transferOutUserSubAccountICP", (to, amount)).await
     }
 
     pub async fn get_user_icsps(&self) -> CallResult<(Vec<(String, Principal)>,)> {

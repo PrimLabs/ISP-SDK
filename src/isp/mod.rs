@@ -85,7 +85,7 @@ pub async fn get_sub_account(pem_identity_path: &str) -> String {
 pub async fn get_icp_balance(pem_identity_path: &str) -> u64 {
     let canister_id = candid::Principal::from_text(ISP_CANISTER_ID_TEXT).unwrap();
     let response_blob = build_agent(pem_identity_path)
-        .update(&canister_id, "getICPBalance")
+        .update(&canister_id, "getUserSubAccountICPBalance")
         .with_arg(Encode!().expect("encode error"))
         .call_and_wait(get_waiter())
         .await
@@ -118,7 +118,7 @@ pub async fn get_icp_balance(pem_identity_path: &str) -> u64 {
 pub async fn transfer_out_icp(pem_identity_path: &str, to: &str, amount: u64) -> TransferResult {
     let canister_id = candid::Principal::from_text(ISP_CANISTER_ID_TEXT).unwrap();
     let response_blob = build_agent(pem_identity_path)
-        .update(&canister_id, "transferOutICP")
+        .update(&canister_id, "transferOutUserSubAccountICP")
         .with_arg(Encode!(&(hex::decode(to).unwrap()), &amount).expect("encode error"))
         .call_and_wait(get_waiter())
         .await
