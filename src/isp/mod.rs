@@ -75,14 +75,14 @@ pub async fn get_sub_account(pem_identity_path: &str) -> String {
 /// ``` no_run
 /// use isp_sdk::isp;
 ///
-/// pub async fn get_icp_balance() {
+/// pub async fn get_user_sub_account_icp_balance() {
 ///     println!(
 ///         "icp balance:{:?}\n",
-///         isp::get_icp_balance("identities/identity.pem").await
+///         isp::get_user_sub_account_icp_balance("identities/identity.pem").await
 ///     );
 /// }
 /// ```
-pub async fn get_icp_balance(pem_identity_path: &str) -> u64 {
+pub async fn get_user_sub_account_icp_balance(pem_identity_path: &str) -> u64 {
     let canister_id = candid::Principal::from_text(ISP_CANISTER_ID_TEXT).unwrap();
     let response_blob = build_agent(pem_identity_path)
         .update(&canister_id, "getUserSubAccountICPBalance")
@@ -103,10 +103,10 @@ pub async fn get_icp_balance(pem_identity_path: &str) -> u64 {
 /// ``` no_run
 /// use isp_sdk::isp;
 ///
-/// pub async fn transfer_out_icp() {
+/// pub async fn transfer_out_user_sub_account_icp() {
 ///     println!(
 ///         "transfer out icp result:{:?}\n",
-///         isp::transfer_out_icp(
+///         isp::transfer_out_user_sub_account_icp(
 ///             "identities/identity.pem",
 ///             "3eee9b4671b8fde5a501288d74d21ee93042dc202104fa35051563ae35d24f2f",
 ///             5000000 as u64
@@ -115,7 +115,11 @@ pub async fn get_icp_balance(pem_identity_path: &str) -> u64 {
 ///     );
 /// }
 /// ```
-pub async fn transfer_out_icp(pem_identity_path: &str, to: &str, amount: u64) -> TransferResult {
+pub async fn transfer_out_user_sub_account_icp(
+    pem_identity_path: &str,
+    to: &str,
+    amount: u64,
+) -> TransferResult {
     let canister_id = candid::Principal::from_text(ISP_CANISTER_ID_TEXT).unwrap();
     let response_blob = build_agent(pem_identity_path)
         .update(&canister_id, "transferOutUserSubAccountICP")
@@ -152,6 +156,31 @@ pub async fn get_isp_admins(pem_identity_path: &str) -> Vec<candid::Principal> {
         .expect("response error");
     let response = Decode!(&response_blob, Vec<candid::Principal>).unwrap();
     response
+}
+
+/// Get ISP's ICSP_WASM version
+///
+/// # Examples
+///
+/// ``` no_run
+/// use isp_sdk::isp;
+///
+/// pub async fn get_isp_version() {
+///     println!(
+///         "isp version: {:?}",
+///         isp::get_version("identities/identity.pem").await
+///     );
+/// }
+/// ```
+pub async fn get_version(pem_identity_path: &str) -> String {
+    let canister_id = candid::Principal::from_text(ISP_CANISTER_ID_TEXT).unwrap();
+    let response_blob = build_agent(pem_identity_path)
+        .query(&canister_id, "getVersion")
+        .with_arg(Encode!().expect("encode error"))
+        .call()
+        .await
+        .expect("response error");
+    Decode!(&response_blob, String).unwrap()
 }
 
 /// Use icp to create a icsp canister and use the [XTC](https://github.com/Psychedelic/dank/tree/main/xtc) to top_up it

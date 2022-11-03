@@ -35,8 +35,7 @@ pub async fn get_all_ic_file_key(
         .call()
         .await
         .expect("response error");
-    let response = Decode!(&response_blob, Vec<String>).unwrap();
-    response
+    Decode!(&response_blob, Vec<String>).unwrap()
 }
 
 /// Get file's information
@@ -65,6 +64,7 @@ pub async fn get_all_ic_file_key(
 ///            println!("total_size: {:?}", file_info.total_size);
 ///        }
 ///    };
+/// }
 /// ```
 pub async fn get_file_info(
     pem_identity_path: &str,
@@ -78,8 +78,7 @@ pub async fn get_file_info(
         .call()
         .await
         .expect("response error");
-    let response = Decode!(&response_blob, Option<FileBufExt>).unwrap();
-    response
+    Decode!(&response_blob, Option<FileBufExt>).unwrap()
 }
 
 /// Get icsp 's cycle balance
@@ -106,8 +105,7 @@ pub async fn get_cycle_balance(pem_identity_path: &str, icsp_canister_id_text: &
         .call()
         .await
         .expect("response error");
-    let response = Decode!(&response_blob, Nat).unwrap();
-    response
+    Decode!(&response_blob, Nat).unwrap()
 }
 
 /// Get the bucket where the file is stored
@@ -143,8 +141,7 @@ pub async fn get_bucket_of_file(
         .call()
         .await
         .expect("response error");
-    let response = Decode!(&response_blob, Option<candid::Principal>).unwrap();
-    response
+    Decode!(&response_blob, Option<candid::Principal>).unwrap()
 }
 
 /// Get buckets of user's icsp
@@ -187,8 +184,7 @@ pub async fn get_icsp_buckets(
         .call()
         .await
         .expect("response error");
-    let response = Decode!(&response_blob, Option<Buckets>).unwrap();
-    response
+    Decode!(&response_blob, Option<Buckets>).unwrap()
 }
 
 /// Get icsp 's admins
@@ -216,8 +212,7 @@ pub async fn get_icsp_admins(
         .call()
         .await
         .expect("response error");
-    let response = Decode!(&response_blob, Vec<candid::Principal>).unwrap();
-    response
+    Decode!(&response_blob, Vec<candid::Principal>).unwrap()
 }
 
 /// Store files from folder_path
@@ -393,9 +388,9 @@ pub async fn delete_file(pem_identity_path: &str, icsp_canister_id_text: &str, f
 ///         "store_str, file_key: {:?}",
 ///         icsp::store_str(
 ///             "identities/identity.pem",
-///             "test_isp_sdk_store_str",
 ///             "4radi-oqaaa-aaaan-qapwa-cai",
-///             true
+///             "test_isp_sdk_store_str",
+///             true,
 ///         )
 ///             .await
 ///     );
@@ -403,8 +398,8 @@ pub async fn delete_file(pem_identity_path: &str, icsp_canister_id_text: &str, f
 /// ```
 pub async fn store_str(
     pem_identity_path: &str,
-    data: &str,
     icsp_canister_id_text: &str,
+    data: &str,
     is_http_open: bool,
 ) -> String {
     let canister_id = candid::Principal::from_text(icsp_canister_id_text).unwrap();
@@ -429,6 +424,51 @@ pub async fn store_str(
         .expect("response error");
 
     file_key
+}
+
+/// Replace the value str corresponding to the key
+/// # Examples
+///
+/// ``` no_run
+/// use isp_sdk::icsp;
+///
+/// pub async fn replace_str() {
+///     icsp::replace_str(
+///         "identities/identity.pem",
+///         "4radi-oqaaa-aaaan-qapwa-cai",
+///         "8225a448-7eff-4162-bb52-313884bbde4e",
+///         "test_isp_sdk_replace_str",
+///         true,
+///     )
+///         .await;
+///     println!("replace_str complete ");
+/// }
+/// ```
+pub async fn replace_str(
+    pem_identity_path: &str,
+    icsp_canister_id_text: &str,
+    file_key: &str,
+    data: &str,
+    is_http_open: bool,
+) {
+    delete_file(pem_identity_path, icsp_canister_id_text, file_key).await;
+
+    let canister_id = candid::Principal::from_text(icsp_canister_id_text).unwrap();
+    let put = StoreArgs {
+        key: file_key.to_string().to_owned(),
+        value: data.as_bytes().to_owned(),
+        total_index: Nat::from(1),
+        file_type: "text/plain".to_string().clone(),
+        total_size: data.len().clone() as u64,
+        is_http_open: is_http_open.clone(),
+        index: Nat::from(0),
+    };
+    let _ = build_agent(pem_identity_path)
+        .update(&canister_id, "store")
+        .with_arg(Encode!(&put).expect("encode piece failed"))
+        .call_and_wait(get_waiter())
+        .await
+        .expect("response error");
 }
 
 /// Get file from icsp, return (data, file_type)
@@ -527,7 +567,7 @@ pub async fn add_icsp_admin(
 ) {
     let canister_id = candid::Principal::from_text(icsp_canister_id_text).unwrap();
     let new_admin = candid::Principal::from_text(new_admin_text).unwrap();
-    let _response_blob = build_agent(pem_identity_path)
+    let _ = build_agent(pem_identity_path)
         .update(&canister_id, "addAdmin")
         .with_arg(Encode!(&new_admin).expect("encode error"))
         .call_and_wait(get_waiter())
@@ -558,12 +598,145 @@ pub async fn delete_icsp_admin(
 ) {
     let canister_id = candid::Principal::from_text(icsp_canister_id_text).unwrap();
     let old_admin = candid::Principal::from_text(old_admin_text).unwrap();
-    let _response_blob = build_agent(pem_identity_path)
+    let _ = build_agent(pem_identity_path)
         .update(&canister_id, "deleteAdmin")
         .with_arg(Encode!(&old_admin).expect("encode error"))
         .call_and_wait(get_waiter())
         .await
         .expect("response error");
+}
+
+/// Top up every bucket some Cycles by using icsp's Cycles
+///
+/// # Examples
+///
+/// ``` no_run
+/// use isp_sdk::icsp;
+///
+/// pub async fn top_up_bucket() {
+///     // 0.1 T Cycles
+///     icsp::top_up_bucket(
+///         "identities/identity.pem",
+///         "4radi-oqaaa-aaaan-qapwa-cai",
+///         100_000_000_000 as u64,
+///     )
+///         .await;
+///     println!("complete top_up_bucket func, top up every bucket 0.1 T Cycles");
+/// }
+/// ```
+pub async fn top_up_bucket(pem_identity_path: &str, icsp_canister_id_text: &str, amount: u64) {
+    let canister_id = candid::Principal::from_text(icsp_canister_id_text).unwrap();
+    let _ = build_agent(pem_identity_path)
+        .update(&canister_id, "topUpBucket")
+        .with_arg(Encode!(&Nat::from(amount)).expect("encode error"))
+        .call_and_wait(get_waiter())
+        .await
+        .expect("response error");
+}
+
+/// Get ICSP's WASM version
+///
+/// # Examples
+///
+/// ``` no_run
+/// use isp_sdk::icsp;
+///
+/// pub async fn get_icsp_version() {
+///     println!(
+///         "icsp version: {:?}",
+///         icsp::get_version("identities/identity.pem", "4radi-oqaaa-aaaan-qapwa-cai").await
+///     );
+/// }
+/// ```
+pub async fn get_version(pem_identity_path: &str, icsp_canister_id_text: &str) -> String {
+    let canister_id = candid::Principal::from_text(icsp_canister_id_text).unwrap();
+    let response_blob = build_agent(pem_identity_path)
+        .query(&canister_id, "getVersion")
+        .with_arg(Encode!().expect("encode error"))
+        .call()
+        .await
+        .expect("response error");
+    Decode!(&response_blob, String).unwrap()
+}
+
+/// Query the number of ic files stored in icsp
+///
+/// # Examples
+///
+/// ``` no_run
+/// use isp_sdk::icsp;
+///
+/// pub async fn get_ic_file_numbers(pem_identity_path: &str, icsp_canister_id_text: &str) -> Nat {
+///     println!(
+///         "icsp 's ic file numbers: {:?}",
+///         icsp::get_ic_file_numbers("identities/identity.pem", "4radi-oqaaa-aaaan-qapwa-cai").await
+///     );
+/// }
+/// ```
+pub async fn get_ic_file_numbers(
+    pem_identity_path: &str,
+    icsp_canister_id_text: &str,
+) -> Option<Nat> {
+    let canister_id = candid::Principal::from_text(icsp_canister_id_text).unwrap();
+    let response_blob = build_agent(pem_identity_path)
+        .query(&canister_id, "getIcFileNums")
+        .with_arg(Encode!().expect("encode error"))
+        .call()
+        .await
+        .expect("response error");
+    Decode!(&response_blob, Option<Nat>).unwrap()
+}
+
+/// Slice all files by page_number and return the information of file_info at page_index
+///
+/// # Examples
+///
+/// ``` no_run
+/// use isp_sdk::icsp;
+///
+/// pub async fn get_field_file_infos() {
+///     let page_num: u64 = 10;
+///     let page_index: u64 = 2;
+///     println!(
+///         "every page have {:?} file_info, query the {:?} page\n",
+///         page_num, page_index
+///     );
+///     let mut index = 0;
+///     for file_info in &icsp::get_field_file_infos(
+///         "identities/identity.pem",
+///         "4radi-oqaaa-aaaan-qapwa-cai",
+///         page_num,
+///         page_index,
+///     )
+///         .await
+///     {
+///         index += 1;
+///         println!("the file_info index: {:?}", index);
+///         println!("bucket_id: {:?}", file_info.bucket_id.to_text());
+///         println!("total_index: {:?}", file_info.total_index);
+///         println!("received chunk_number: {:?}", file_info.received);
+///         println!("wrote_page: {:?}", file_info.wrote_page);
+///         println!("file type: {:?}", file_info.file_type);
+///         println!("is_http_open: {:?}", file_info.is_http_open);
+///         println!("total_size: {:?}", file_info.total_size);
+///         println!("\n");
+///     }
+/// }
+/// ```
+pub async fn get_field_file_infos(
+    pem_identity_path: &str,
+    icsp_canister_id_text: &str,
+    page_number: u64,
+    page_index: u64,
+) -> Vec<FileBufExt> {
+    let canister_id = candid::Principal::from_text(icsp_canister_id_text).unwrap();
+    let response_blob = build_agent(pem_identity_path)
+        .query(&canister_id, "getFieldFileInfos")
+        .with_arg(Encode!(&Nat::from(page_number), &Nat::from(page_index)).expect("encode error"))
+        .call()
+        .await
+        .expect("response error");
+    Decode!(&response_blob, Vec<FileBufExt>).unwrap()
 }
 
 fn get_waiter() -> Delay {

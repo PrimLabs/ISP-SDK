@@ -64,10 +64,10 @@ async fn run_test(args: Config) {
             test_isp::delete_icsp_admin().await;
         } else if args.test_function == "top_up_icsp_with_xtc".to_string() {
             test_isp::top_up_icsp_with_xtc().await;
-        } else if args.test_function == "get_icp_balance".to_string() {
-            test_isp::get_icp_balance().await;
-        } else if args.test_function == "transfer_out_icp".to_string() {
-            test_isp::transfer_out_icp().await;
+        } else if args.test_function == "get_user_sub_account_icp_balance".to_string() {
+            test_isp::get_user_sub_account_icp_balance().await;
+        } else if args.test_function == "transfer_out_user_sub_account_icp".to_string() {
+            test_isp::transfer_out_user_sub_account_icp().await;
         } else if args.test_function == "get_cycle_balance".to_string() {
             test_isp::get_cycle_balance().await;
         } else if args.test_function == "get_all_ic_file_key".to_string() {
@@ -76,6 +76,18 @@ async fn run_test(args: Config) {
             test_isp::get_file_info().await;
         } else if args.test_function == "delete_file".to_string() {
             test_isp::delete_file().await;
+        } else if args.test_function == "top_up_bucket".to_string() {
+            test_isp::top_up_bucket().await;
+        } else if args.test_function == "get_icsp_version".to_string() {
+            test_isp::get_icsp_version().await;
+        } else if args.test_function == "get_ic_file_numbers".to_string() {
+            test_isp::get_ic_file_numbers().await;
+        } else if args.test_function == "get_field_file_infos".to_string() {
+            test_isp::get_field_file_infos().await;
+        } else if args.test_function == "replace_str".to_string() {
+            test_isp::replace_str().await;
+        } else if args.test_function == "get_isp_version".to_string() {
+            test_isp::get_isp_version().await;
         }
     } else if args.test_module == "isp_certified_log" {
         println!("test_module : {:?}", args.test_module);

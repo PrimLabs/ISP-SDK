@@ -28,6 +28,58 @@ pub async fn get_isp_admins() {
     }
 }
 
+pub async fn get_isp_version() {
+    println!(
+        "isp version: {:?}",
+        isp::get_version("identities/identity.pem").await
+    );
+}
+
+pub async fn get_icsp_version() {
+    println!(
+        "icsp version: {:?}",
+        icsp::get_version("identities/identity.pem", "4radi-oqaaa-aaaan-qapwa-cai").await
+    );
+}
+
+pub async fn get_ic_file_numbers() {
+    println!(
+        "icsp 's ic file numbers: {:?}",
+        icsp::get_ic_file_numbers("identities/identity.pem", "4radi-oqaaa-aaaan-qapwa-cai")
+            .await
+            .unwrap()
+    );
+}
+
+pub async fn get_field_file_infos() {
+    let page_num: u64 = 10;
+    let page_index: u64 = 2;
+    println!(
+        "every page have {:?} file_info, query the {:?} page\n",
+        page_num, page_index
+    );
+    let mut index = 0;
+    for file_info in &icsp::get_field_file_infos(
+        "identities/identity.pem",
+        "4radi-oqaaa-aaaan-qapwa-cai",
+        page_num,
+        page_index,
+    )
+    .await
+    {
+        index += 1;
+        println!("the file_info index: {:?}", index);
+        println!("bucket_id: {:?}", file_info.bucket_id.to_text());
+        println!("total_index: {:?}", file_info.total_index);
+        println!("received chunk_number: {:?}", file_info.received);
+        println!("wrote_page: {:?}", file_info.wrote_page);
+        println!("file type: {:?}", file_info.file_type);
+        println!("is_http_open: {:?}", file_info.is_http_open);
+        println!("total_size: {:?}", file_info.total_size);
+        println!("\n");
+    }
+}
+
 pub async fn create_icsp() {
     let response = isp::create_icsp(
         "identities/identity.pem",
@@ -67,7 +119,7 @@ pub async fn get_bucket_of_file() {
         icsp::get_bucket_of_file(
             "identities/identity.pem",
             "4radi-oqaaa-aaaan-qapwa-cai",
-            "bf0efa3d-6639-4d62-a81d-c90974cc6925",
+            "c3fc027b-0917-4308-adf5-bdd460598d88",
         )
         .await
         .expect("no bucket have this file")
@@ -77,7 +129,7 @@ pub async fn get_bucket_of_file() {
 
 pub async fn get_icsp_buckets() {
     let response =
-        icsp::get_icsp_buckets("identities/identity.pem", "5ekwd-fyaaa-aaaan-qaxlq-cai").await;
+        icsp::get_icsp_buckets("identities/identity.pem", "4radi-oqaaa-aaaan-qapwa-cai").await;
     match response {
         Some(response) => {
             println!("dead buckets:");
@@ -109,6 +161,17 @@ pub async fn get_icsp_admins() {
     }
 }
 
+pub async fn top_up_bucket() {
+    // 0.1 T Cycles
+    icsp::top_up_bucket(
+        "identities/identity.pem",
+        "4radi-oqaaa-aaaan-qapwa-cai",
+        100_000_000_000 as u64,
+    )
+    .await;
+    println!("complete top_up_bucket func, top up every bucket 0.1 T Cycles");
+}
+
 pub async fn store_files() {
     // url format : icsp_canister_id.raw.ic0.app/'option location'/file_key
     // icsp_canister_id.raw.ic0.app/ic/file_key
@@ -116,7 +179,7 @@ pub async fn store_files() {
     // icsp_canister_id.raw.ic0.app/ar/file_key
     for i in &icsp::store_files(
         "identities/identity.pem",
-        "source/",
+        "/Users/heyuanxun/Downloads/90MSource/",
         "4radi-oqaaa-aaaan-qapwa-cai",
         true,
     )
@@ -134,7 +197,7 @@ pub async fn store_file() {
     let respoonse = icsp::store_file(
         "identities/identity.pem",
         "source/a.jpeg",
-        "5ekwd-fyaaa-aaaan-qaxlq-cai",
+        "4radi-oqaaa-aaaan-qapwa-cai",
         true,
     )
     .await;
@@ -144,8 +207,8 @@ pub async fn store_file() {
 pub async fn delete_file() {
     let _respoonse = icsp::delete_file(
         "identities/identity.pem",
-        "5ekwd-fyaaa-aaaan-qaxlq-cai",
-        "eb76d54c-c79e-4a95-beea-d771138d36ee",
+        "4radi-oqaaa-aaaan-qapwa-cai",
+        "7d207a64-8621-419b-a4be-022591f4fd6e",
     )
     .await;
     println!("complete delete file func");
@@ -160,12 +223,24 @@ pub async fn store_str() {
         "store_str, file_key: {:?}",
         icsp::store_str(
             "identities/identity.pem",
-            "test_isp_sdk_store_str",
             "4radi-oqaaa-aaaan-qapwa-cai",
-            true
+            "test_isp_sdk_store_str",
+            true,
         )
         .await
     );
+}
+
+pub async fn replace_str() {
+    icsp::replace_str(
+        "identities/identity.pem",
+        "4radi-oqaaa-aaaan-qapwa-cai",
+        "8225a448-7eff-4162-bb52-313884bbde4e",
+        "test_isp_sdk_replace_str",
+        true,
+    )
+    .await;
+    println!("replace_str complete ");
 }
 
 pub async fn get_file() {
@@ -217,17 +292,17 @@ pub async fn top_up_icsp_with_xtc() {
     );
 }
 
-pub async fn get_icp_balance() {
+pub async fn get_user_sub_account_icp_balance() {
     println!(
         "icp balance:{:?}\n",
-        isp::get_icp_balance("identities/identity.pem").await
+        isp::get_user_sub_account_icp_balance("identities/identity.pem").await
     );
 }
 
-pub async fn transfer_out_icp() {
+pub async fn transfer_out_user_sub_account_icp() {
     println!(
         "transfer out icp result:{:?}\n",
-        isp::transfer_out_icp(
+        isp::transfer_out_user_sub_account_icp(
             "identities/identity.pem",
             "3eee9b4671b8fde5a501288d74d21ee93042dc202104fa35051563ae35d24f2f",
             5000000 as u64
@@ -255,7 +330,7 @@ pub async fn get_file_info() {
     match icsp::get_file_info(
         "identities/identity.pem",
         "4radi-oqaaa-aaaan-qapwa-cai",
-        "49c1dadd-6fa6-4f15-b963-1a1e6f111028".to_string(),
+        "c3fc027b-0917-4308-adf5-bdd460598d88".to_string(),
     )
     .await
     {

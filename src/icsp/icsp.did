@@ -10,13 +10,17 @@ type icsp =
    getBucketOfFile: (text) -> (opt principal) query;
    getBuckets: () -> (opt Buckets) query;
    getCycleBalance: () -> (nat) query;
+   getFieldFileInfos: (nat, nat) -> (vec FileBufExt) query;
    getFileInfo: (text) -> (opt FileBufExt) query;
+   getIcFileNums: () -> (opt nat) query;
    getOtherFile: (text, FileLocation__1) -> (opt OtherFile) query;
+   getVersion: () -> (text) query;
    http_request: (HttpRequest) -> (HttpResponse) query;
-   init: () -> (BucketStatusExt);
+   init: () -> (Result);
    recordFile: (OtherFile) -> ();
    store: (StoreArgs) -> ();
    topUpBucket: (nat) -> ();
+   updateVersion: (text) -> (bool);
    wallet_receive: () -> (nat);
  };
 type StreamingCallbackHttpResponse = 
@@ -41,6 +45,11 @@ type StoreArgs =
    total_index: nat;
    total_size: nat64;
    value: blob;
+ };
+type Result = 
+ variant {
+   err: DataErr;
+   ok: BucketStatusExt;
  };
 type OtherFile = 
  record {
@@ -87,6 +96,11 @@ type FileBufExt =
    total_index: nat;
    total_size: nat64;
    wrote_page: vec bool;
+ };
+type DataErr = 
+ variant {
+   BucketEnough;
+   CycleNotEnough;
  };
 type CallbackToken = 
  record {
