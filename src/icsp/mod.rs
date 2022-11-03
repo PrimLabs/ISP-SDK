@@ -342,6 +342,63 @@ pub async fn store_file(
     (file_name, file_key.clone())
 }
 
+/// Store file with given key
+///
+/// return (file_name, file_key)
+///
+/// If http open,url format: icsp_canister_id.raw.ic0.app/ic/file_key
+///
+/// # Examples
+///
+/// ``` no_run
+/// use isp_sdk::icsp;
+///
+/// pub async fn store_file_by_key() {
+///     let respoonse = icsp::store_file_by_key(
+///         "identities/identity.pem",
+///         "source/bitcoin.pdf",
+///         "4radi-oqaaa-aaaan-qapwa-cai",
+///         true,
+///         "test_key".to_string(),
+///     )
+///         .await;
+///     println!("file_name:{:?},file_key:{:?}", respoonse.0, respoonse.1);
+/// }
+/// ```
+pub async fn store_file_by_key(
+    pem_identity_path: &str,
+    file_path_str: &str,
+    icsp_canister_id_text: &str,
+    is_http_open: bool,
+    file_key: String,
+) -> (String, String) {
+    let canister_id = candid::Principal::from_text(icsp_canister_id_text).unwrap();
+    let agent = build_agent(pem_identity_path);
+    let file_path = Path::new(file_path_str);
+    let file_name = file_path.file_stem().unwrap().to_str().unwrap().to_owned();
+    let file_extension = String::from(get_file_type(
+        file_path.extension().unwrap().to_str().unwrap(),
+    ));
+
+    let (file_size, data_slice) = get_file_from_source(file_path_str);
+    let puts = build_store_args(
+        file_key.clone(),
+        file_extension,
+        file_size.try_into().unwrap(),
+        &data_slice,
+        is_http_open,
+    );
+    for put in &puts {
+        let _response_blob = agent
+            .update(&canister_id, "store")
+            .with_arg(Encode!(put).expect("encode piece failed"))
+            .call_and_wait(get_waiter())
+            .await
+            .expect("response error");
+    }
+    (file_name, file_key.clone())
+}
+
 /// Delete file by file_key
 ///
 /// # Examples

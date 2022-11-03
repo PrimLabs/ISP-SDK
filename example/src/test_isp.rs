@@ -204,6 +204,18 @@ pub async fn store_file() {
     println!("file_name:{:?},file_key:{:?}", respoonse.0, respoonse.1);
 }
 
+pub async fn store_file_by_key() {
+    let respoonse = icsp::store_file_by_key(
+        "identities/identity.pem",
+        "source/bitcoin.pdf",
+        "4radi-oqaaa-aaaan-qapwa-cai",
+        true,
+        "test_key".to_string(),
+    )
+    .await;
+    println!("file_name:{:?},file_key:{:?}", respoonse.0, respoonse.1);
+}
+
 pub async fn delete_file() {
     let _respoonse = icsp::delete_file(
         "identities/identity.pem",
@@ -321,7 +333,7 @@ pub async fn get_cycle_balance() {
 pub async fn get_all_ic_file_key() {
     println!(
         "get all ic file key result: {:?}",
-        icsp::get_all_ic_file_key("identities/identity.pem", "5ekwd-fyaaa-aaaan-qaxlq-cai").await
+        icsp::get_all_ic_file_key("identities/identity.pem", "4radi-oqaaa-aaaan-qapwa-cai").await
     );
 }
 

@@ -88,6 +88,8 @@ async fn run_test(args: Config) {
             test_isp::replace_str().await;
         } else if args.test_function == "get_isp_version".to_string() {
             test_isp::get_isp_version().await;
+        } else if args.test_function == "store_file_by_key".to_string() {
+            test_isp::store_file_by_key().await;
         }
     } else if args.test_module == "isp_certified_log" {
         println!("test_module : {:?}", args.test_module);
