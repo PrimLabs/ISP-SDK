@@ -207,10 +207,10 @@ pub async fn store_file() {
 pub async fn store_file_by_key() {
     let respoonse = icsp::store_file_by_key(
         "identities/identity.pem",
-        "source/bitcoin.pdf",
+        "source/a.docx",
         "4radi-oqaaa-aaaan-qapwa-cai",
         true,
-        "test_key".to_string(),
+        "1112".to_string(),
     )
     .await;
     println!("file_name:{:?},file_key:{:?}", respoonse.0, respoonse.1);

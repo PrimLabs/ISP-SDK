@@ -200,7 +200,7 @@ pub async fn store(pem_identity_path: &str, icsp_log_canister_id_text: &str, arg
     let response_blob = build_agent(pem_identity_path)
         .update(&canister_id, "store")
         .with_arg(Encode!(&args).expect("encode piece failed"))
-        .call_and_wait(get_waiter())
+        .call_and_wait()
         .await
         .expect("response error");
     let response = Decode!(&response_blob, ()).unwrap();
@@ -250,7 +250,7 @@ pub async fn add_admin(
     let response_blob = build_agent(pem_identity_path)
         .update(&canister_id, "addAdmin")
         .with_arg(Encode!(&new_admin).expect("encode piece failed"))
-        .call_and_wait(get_waiter())
+        .call_and_wait()
         .await
         .expect("response error");
     let response = Decode!(&response_blob, ()).unwrap();
@@ -283,7 +283,7 @@ pub async fn delete_admin(
     let response_blob = build_agent(pem_identity_path)
         .update(&canister_id, "deleteAdmin")
         .with_arg(Encode!(&old_admin).expect("encode piece failed"))
-        .call_and_wait(get_waiter())
+        .call_and_wait()
         .await
         .expect("response error");
     let response = Decode!(&response_blob, ()).unwrap();

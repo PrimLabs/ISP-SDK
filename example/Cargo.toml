@@ -5,8 +5,8 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
-ic-cdk = "0.6.0"
-ic-agent = "0.22.0"
+ic-cdk = "0.7.0"
+ic-agent = "0.23.0"
 candid = "0.8.2"
 serde = "1.0.144"
 garcon = "0.2.3"

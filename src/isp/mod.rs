@@ -87,7 +87,7 @@ pub async fn get_user_sub_account_icp_balance(pem_identity_path: &str) -> u64 {
     let response_blob = build_agent(pem_identity_path)
         .update(&canister_id, "getUserSubAccountICPBalance")
         .with_arg(Encode!().expect("encode error"))
-        .call_and_wait(get_waiter())
+        .call_and_wait()
         .await
         .expect("response error");
     let response = Decode!(&response_blob, u64).unwrap();
@@ -124,7 +124,7 @@ pub async fn transfer_out_user_sub_account_icp(
     let response_blob = build_agent(pem_identity_path)
         .update(&canister_id, "transferOutUserSubAccountICP")
         .with_arg(Encode!(&(hex::decode(to).unwrap()), &amount).expect("encode error"))
-        .call_and_wait(get_waiter())
+        .call_and_wait()
         .await
         .expect("response error");
     let response = Decode!(&response_blob, TransferResult).unwrap();
@@ -233,7 +233,7 @@ pub async fn create_icsp(
     let response_blob = agent
         .update(&isp_canister_id, "createICSP")
         .with_arg(Encode!(&icsp_name, &icp_to_create_amount).expect("encode error"))
-        .call_and_wait(get_waiter())
+        .call_and_wait()
         .await
         .expect("response error");
     let response = Decode!(&response_blob, CreateICSPResult).unwrap();
@@ -257,7 +257,7 @@ pub async fn create_icsp(
                             "init",
                         )
                         .with_arg(Encode!().expect("encode error"))
-                        .call_and_wait(get_waiter())
+                        .call_and_wait()
                         .await
                         .expect("response error");
                     return (
@@ -306,7 +306,7 @@ pub async fn top_up_icsp(pem_identity_path: &str, args: TopUpArgs) -> TopUpResul
     let response_blob = build_agent(pem_identity_path)
         .update(&canister_id, "topUpICSP")
         .with_arg(Encode!(&args).expect("encode error"))
-        .call_and_wait(get_waiter())
+        .call_and_wait()
         .await
         .expect("response error");
     let response = Decode!(&response_blob, TopUpResult).unwrap();
@@ -361,7 +361,7 @@ pub async fn top_up_icsp_with_xtc(pem_identity_path: &str, args: BurnArgs) -> Bu
     let response_blob = build_agent(pem_identity_path)
         .update(&canister_id, "burn")
         .with_arg(Encode!(&args).expect("encode error"))
-        .call_and_wait(get_waiter())
+        .call_and_wait()
         .await
         .expect("response error");
     let response = Decode!(&response_blob, BurnResult).unwrap();

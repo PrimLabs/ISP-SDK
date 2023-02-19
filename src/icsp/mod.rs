@@ -153,12 +153,16 @@ pub async fn get_bucket_of_file(
 ///
 /// pub async fn get_icsp_buckets() {
 ///     let response =
-///         icsp::get_icsp_buckets("identities/identity.pem", "5ekwd-fyaaa-aaaan-qaxlq-cai").await;
+///         icsp::get_icsp_buckets("identities/identity.pem", "4radi-oqaaa-aaaan-qapwa-cai").await;
 ///     match response {
 ///         Some(response) => {
-///             println!("old buckets:");
-///             for i in &response.old_buckets {
-///                 println!("{:?}", i.to_text());
+///             println!("dead buckets:");
+///             for i in &response.dead_buckets {
+///                 println!(
+///                     "canister_id: {:?}; used_memory: {:?}",
+///                     i.canister_id.to_text(),
+///                     i.used_memory
+///                 );
 ///             }
 ///             println!("Live Buckets:");
 ///             for i in &response.live_buckets {
@@ -273,7 +277,7 @@ pub async fn store_files(
             let _response_blob = agent
                 .update(&canister_id, "store")
                 .with_arg(Encode!(put).expect("encode piece failed"))
-                .call_and_wait(get_waiter())
+                .call_and_wait()
                 .await
                 .expect("response error");
         }
@@ -335,7 +339,7 @@ pub async fn store_file(
         let _response_blob = agent
             .update(&canister_id, "store")
             .with_arg(Encode!(put).expect("encode piece failed"))
-            .call_and_wait(get_waiter())
+            .call_and_wait()
             .await
             .expect("response error");
     }
@@ -392,7 +396,7 @@ pub async fn store_file_by_key(
         let _response_blob = agent
             .update(&canister_id, "store")
             .with_arg(Encode!(put).expect("encode piece failed"))
-            .call_and_wait(get_waiter())
+            .call_and_wait()
             .await
             .expect("response error");
     }
@@ -422,7 +426,7 @@ pub async fn delete_file(pem_identity_path: &str, icsp_canister_id_text: &str, f
     let _ = agent
         .update(&canister_id, "delete")
         .with_arg(Encode!(&file_key.to_string()).expect("encode piece failed"))
-        .call_and_wait(get_waiter())
+        .call_and_wait()
         .await
         .expect("response error");
 }
@@ -476,7 +480,7 @@ pub async fn store_str(
     let _ = build_agent(pem_identity_path)
         .update(&canister_id, "store")
         .with_arg(Encode!(&put).expect("encode piece failed"))
-        .call_and_wait(get_waiter())
+        .call_and_wait()
         .await
         .expect("response error");
 
@@ -523,7 +527,7 @@ pub async fn replace_str(
     let _ = build_agent(pem_identity_path)
         .update(&canister_id, "store")
         .with_arg(Encode!(&put).expect("encode piece failed"))
-        .call_and_wait(get_waiter())
+        .call_and_wait()
         .await
         .expect("response error");
 }
@@ -568,7 +572,7 @@ pub async fn get_file(
             "getFileTotalIndex",
         )
         .with_arg(Encode!(&file_key).expect("encode failed"))
-        .call_and_wait(get_waiter())
+        .call_and_wait()
         .await
         .expect("response error");
     let total_index = Decode!(&total_index_blob, Nat).unwrap();
@@ -627,7 +631,7 @@ pub async fn add_icsp_admin(
     let _ = build_agent(pem_identity_path)
         .update(&canister_id, "addAdmin")
         .with_arg(Encode!(&new_admin).expect("encode error"))
-        .call_and_wait(get_waiter())
+        .call_and_wait()
         .await
         .expect("response error");
 }
@@ -658,7 +662,7 @@ pub async fn delete_icsp_admin(
     let _ = build_agent(pem_identity_path)
         .update(&canister_id, "deleteAdmin")
         .with_arg(Encode!(&old_admin).expect("encode error"))
-        .call_and_wait(get_waiter())
+        .call_and_wait()
         .await
         .expect("response error");
 }
@@ -686,7 +690,7 @@ pub async fn top_up_bucket(pem_identity_path: &str, icsp_canister_id_text: &str,
     let _ = build_agent(pem_identity_path)
         .update(&canister_id, "topUpBucket")
         .with_arg(Encode!(&Nat::from(amount)).expect("encode error"))
-        .call_and_wait(get_waiter())
+        .call_and_wait()
         .await
         .expect("response error");
 }

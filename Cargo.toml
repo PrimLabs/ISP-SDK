@@ -1,6 +1,6 @@
 [package]
 name = "ISP-SDK"
-version = "0.2.2"
+version = "0.2.3"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 readme = "README.md"
@@ -14,8 +14,8 @@ repository = "https://github.com/PrimLabs/ISP-SDK"
 name = "isp_sdk"
 
 [dependencies]
-ic-cdk = "0.6.0"
-ic-agent = "0.22.0"
+ic-cdk = "0.7.0"
+ic-agent = "0.23.0"
 candid = "0.8.2"
 serde = "1.0.144"
 garcon = "0.2.3"
