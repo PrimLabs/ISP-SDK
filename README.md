@@ -29,6 +29,6 @@ ISP（IC storage protocol）是一个构建于IC上的可扩展的存储协议�
 
 
 ## Architecture
-![](https://scf3f-cyaaa-aaaal-aas3q-cai.raw.ic0.app/fk/VOhoOCto-8SRSfYZ1jKhE)
+![]([https://scf3f-cyaaa-aaaal-aas3q-cai.raw.ic0.app/fk/VOhoOCto-8SRSfYZ1jKhE](https://kh4t2-waaaa-aaaal-qbhbq-cai.raw.ic0.app/file/wjD6l7ZodvfnUBZVyxHpu))
 
 
